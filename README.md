@@ -2,7 +2,8 @@
 
 A lightweight drone flight trajectory optimizer.
 
-Dependencies: [Epigraph](https://github.com/EmbersArc/Epigraph)
+Dependencies:
+- <a href="ttps://github.com/EmbersArc/Epigraph" target="_blank">Epigraph</a>
 
 Build:
 ```
