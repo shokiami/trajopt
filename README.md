@@ -1,20 +1,15 @@
 # trajopt
 
-Clone trajopt:
-```
-git clone git@github.com:shokiami/trajopt.git
-cd trajopt
-```
+A lightweight drone flight trajectory optimizer.
 
-Clone Epigraph:
-```
-git clone git@github.com:EmbersArc/Epigraph.git
-cd Epigraph
-make ../build
-cd ..
-```
+Dependencies: [Epigraph](https://github.com/EmbersArc/Epigraph)
 
 Build:
 ```
 make
+```
+
+Run:
+```
+./main
 ```
