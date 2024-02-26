@@ -3,9 +3,10 @@
 A lightweight drone flight trajectory optimizer.
 
 Dependencies:
+- [Epigraph](https://github.com/EmbersArc/Epigraph)
 - [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page)
 
-Set up [Epigraph](https://github.com/EmbersArc/Epigraph):
+Set up:
 ```
 ./setup.sh
 ```

@@ -1,4 +1,4 @@
 Epigraph
-build
-*.o
+libs
+obj
 main
