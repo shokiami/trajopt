@@ -8,7 +8,7 @@ Dependencies:
 
 Set up:
 ```
-./setup.sh
+source setup.sh
 ```
 
 Build:
