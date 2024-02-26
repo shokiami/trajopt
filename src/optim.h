@@ -2,5 +2,5 @@
 
 class Optimizer {
   public:
-  int main();
+  void main();
 };

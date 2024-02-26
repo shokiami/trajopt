@@ -1,8 +1,8 @@
-#include "algo.h"
+#include "optim.h"
 
 int main() {
-  cout << "hi" << endl;
-
   Optimizer optim = Optimizer();
   optim.main();
+
+  return 0;
 }

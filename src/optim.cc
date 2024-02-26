@@ -1,15 +1,11 @@
-#include "algo.h"
+#include "optim.h"
 #include "epigraph.hpp"
-
-#include <iostream>
 
 // This example solves the portfolio optimization problem in QP form
 
 using namespace cvx;
 
-int main() {}
-
-int Optimizer::main() {
+void Optimizer::main() {
   size_t n = 5; // Assets
   size_t m = 2; // Factors
 
@@ -47,23 +43,23 @@ int Optimizer::main() {
   qp.addCostTerm(x.transpose() * par(gamma * Sigma) * x - dynpar(mu).dot(x));
 
   // Print the problem formulation for inspection
-  std::cout << qp << "\n";
+  cout << qp << endl;
 
   // Create and initialize the solver instance.
   osqp::OSQPSolver solver(qp);
 
   // Print the canonical problem formulation for inspection
-  std::cout << solver << "\n";
+  cout << solver << endl;
 
   // Solve problem and show solver output
   const bool verbose = true;
   solver.solve(verbose);
 
-  std::cout << "Solver message:  " << solver.getResultString() << "\n";
-  std::cout << "Solver exitcode: " << solver.getExitCode() << "\n";
+  cout << "Solver message:  " << solver.getResultString() << endl;
+  cout << "Solver exitcode: " << solver.getExitCode() << endl;
 
   // Call eval() to get the variable values
-  std::cout << "Solution:\n" << eval(x) << "\n";
+  cout << "Solution:\n" << eval(x) << endl;
 
   // Update data
   mu.setRandom();
@@ -73,7 +69,5 @@ int Optimizer::main() {
   // OSQP will warm start automatically
   solver.solve(verbose);
 
-  std::cout << "Solution after changing the cost function:\n" << eval(x) << "\n";
-
-  return 0;
+  cout << "Solution after changing the cost function:\n" << eval(x) << endl;
 }
