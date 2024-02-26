@@ -5,7 +5,7 @@ git clone git@github.com:EmbersArc/Epigraph.git
 
 # run cmake
 mkdir Epigraph/build
-cmake -S Epigraph -B Epigraph/build -DENABLE_ECOS -DENABLE_OSQP
+cmake -S Epigraph -B Epigraph/build -DENABLE_ECOS=TRUE -DENABLE_OSQP=TRUE
 cmake --build Epigraph/build
 
 # set up libs dir
