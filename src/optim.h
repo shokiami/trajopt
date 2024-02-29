@@ -2,22 +2,20 @@
 #define OPTIM_H_
 
 #include "defs.h"
-#include "epigraph.hpp"
-
-using namespace cvx;
 
 class Optimizer {
   public:
-  Optimizer(Eigen::VectorXd r_i, Eigen::VectorXd r_f, Eigen::VectorXd v_i, Eigen::VectorXd v_f,
-            size_t n, double t_f, double u_max, double theta_max, double m);
+  Optimizer(Eigen::Vector3d r_i, Eigen::Vector3d r_f, Eigen::Vector3d v_i, Eigen::Vector3d v_f,
+            int n, double t_f, double u_max, double theta_max, double m);
   void solve();
+  void save(string filename);
 
   private:
-  Eigen::VectorXd r_i;
-  Eigen::VectorXd r_f;
-  Eigen::VectorXd v_i;
-  Eigen::VectorXd v_f;
-  size_t n;
+  Eigen::Vector3d r_i;
+  Eigen::Vector3d r_f;
+  Eigen::Vector3d v_i;
+  Eigen::Vector3d v_f;
+  int n;
   double t_f;
   double u_max;
   double theta_max;
@@ -29,6 +27,9 @@ class Optimizer {
   vector<VectorX> a;
   vector<VectorX> u;
   vector<Scalar> gamma;
+  
+  vector<Eigen::Vector3d> controls;
+  vector<Eigen::Vector3d> traj;
 };
 
 #endif

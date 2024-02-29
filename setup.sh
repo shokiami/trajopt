@@ -14,5 +14,6 @@ cp Epigraph/build/libepigraph.so lib
 cp Epigraph/build/solvers/ecos/libecos.so lib
 cp Epigraph/build/solvers/osqp/out/libosqp.so lib
 
-# set up obj dir
+# set up obj and data dir
 mkdir obj
+mkdir data
