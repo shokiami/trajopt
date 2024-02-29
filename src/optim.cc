@@ -1,73 +1,58 @@
 #include "optim.h"
-#include "epigraph.hpp"
 
-// This example solves the portfolio optimization problem in QP form
+Optimizer::Optimizer(Eigen::VectorXd r_i, Eigen::VectorXd r_f, Eigen::VectorXd v_i, Eigen::VectorXd v_f,
+                     size_t n, double t_f, double u_max, double theta_max, double m) :
+                     n(n), t_f(t_f), u_max(u_max), theta_max(theta_max), m(m) {
+  Eigen::Vector3d g(0.0, 0.0, 9.81);
+  double dt = t_f / n;
 
-using namespace cvx;
+  // variables
+  r = qp.addVariable("r", 3, n + 1);
+  v = qp.addVariable("v", 3, n + 1);
+  a = qp.addVariable("a", 3, n + 1);
+  u = qp.addVariable("u", 3, n + 1);
+  gamma = qp.addVariable("gamma", n + 1);
 
-void Optimizer::main() {
-  size_t n = 5; // Assets
-  size_t m = 2; // Factors
+  // cost function
+  qp.addCostTerm(gamma.squaredNorm());
 
-  // Set up problem data.
-  double gamma = 0.5;          // risk aversion parameter
-  Eigen::VectorXd mu(n);       // vector of expected returns
-  Eigen::MatrixXd F(n, m);     // factor-loading matrix
-  Eigen::VectorXd D(n);        // diagonal of idiosyncratic risk
-  Eigen::MatrixXd Sigma(n, n); // asset return covariance
+  // dynamics
+  for (size_t i = 0; i <= n; i++) {
+    qp.addConstraint(equalTo(a.col(i), par(1.0 / m) * u.col(i) + par(g)));
+  }
+  for (size_t i = 0; i < n; i++) {
+    qp.addConstraint(equalTo(r.col(i + 1), r.col(i) + par(dt) * v.col(i) + par(1.0 / 4.0 * dt * dt) * a.col(i) + par(1.0 / 4.0 * dt * dt) * a.col(i + 1)));
+    qp.addConstraint(equalTo(v.col(i + 1), v.col(i) + par(1.0 / 2.0 * dt) * a.col(i) + par(1.0 / 2.0 * dt) * a.col(i + 1)));
+  }
 
-  mu.setRandom();
-  F.setRandom();
-  D.setRandom();
+  // control constraints
+  for (size_t i = 0; i <= n; i++) {
+    qp.addConstraint(lessThan(a.col(i).norm(), gamma(i)));
+    qp.addConstraint(greaterThan(gamma(i), 0.0));
+    qp.addConstraint(lessThan(gamma(i), u_max));
+    qp.addConstraint(lessThan(par(cos(theta_max)) * gamma(i), u.col(i)(2)));
+  }
 
-  mu = mu.cwiseAbs();
-  F = F.cwiseAbs();
-  D = D.cwiseAbs();
-  Sigma = F * F.transpose();
-  Sigma.diagonal() += D;
+  // initial conditions
+  qp.addConstraint(equalTo(r.col(0), par(r_i)));
+  qp.addConstraint(equalTo(v.col(0), par(v_i)));
+  qp.addConstraint(equalTo(u.col(0), par(g)));
 
-  // Formulate QP.
-  OptimizationProblem qp;
+  // final conditions
+  qp.addConstraint(equalTo(r.col(n), par(r_f)));
+  qp.addConstraint(equalTo(v.col(n), par(v_f)));
+  qp.addConstraint(equalTo(u.col(n), par(g)));
+}
 
-  // Declare variables with...
-  // addVariable(name) for scalars,
-  // addVariable(name, rows) for vectors and
-  // addVariable(name, rows, cols) for matrices.
-  VectorX x = qp.addVariable("x", n);
-
-  // Available constraint types are equalTo(), lessThan(), greaterThan() and box()
-  qp.addConstraint(greaterThan(x, 0.));
-  qp.addConstraint(equalTo(x.sum(), 1.));
-
-  // Make mu dynamic in the cost function so we can change it later
-  qp.addCostTerm(x.transpose() * par(gamma * Sigma) * x - dynpar(mu).dot(x));
-
-  // Print the problem formulation for inspection
-  cout << qp << endl;
-
-  // Create and initialize the solver instance.
-  osqp::OSQPSolver solver(qp);
-
-  // Print the canonical problem formulation for inspection
-  cout << solver << endl;
-
-  // Solve problem and show solver output
+void Optimizer::solve() {
+  osqp::OSQPSolver solver = osqp::OSQPSolver(qp);
   const bool verbose = true;
   solver.solve(verbose);
-
-  cout << "Solver message:  " << solver.getResultString() << endl;
-  cout << "Solver exitcode: " << solver.getExitCode() << endl;
-
-  // Call eval() to get the variable values
-  cout << "Solution:\n" << eval(x) << endl;
-
-  // Update data
-  mu.setRandom();
-  mu = mu.cwiseAbs();
-
-  // Solve again
-  // OSQP will warm start automatically
-  solver.solve(verbose);
-
-  cout << "Solution after changing the cost function:\n" << eval(x) << endl;
+  cout << "Solver message: " << solver.getResultString() << endl;
+  cout << "Solver exitcode: " << solver.getExitCode() << endl << endl;
+  cout << "Solution:" << endl;
+  cout << std::setprecision(3) << std::fixed;
+  for (size_t i = 0; i <= n; i++) {
+    cout << eval(r.col(i).transpose()) << endl;
+  }
 }
