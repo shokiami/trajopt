@@ -3,12 +3,14 @@
 
 #include "defs.h"
 
+using namespace cvx;
+
 class Optimizer {
   public:
   Optimizer(Eigen::Vector3d r_i, Eigen::Vector3d r_f, Eigen::Vector3d v_i, Eigen::Vector3d v_f,
             int n, double t_f, double u_max, double theta_max, double m);
   void solve();
-  void save(string filename);
+  void save(string path);
 
   private:
   Eigen::Vector3d r_i;

@@ -18,6 +18,4 @@ using std::ofstream;
 using std::string;
 using std::vector;
 
-using namespace cvx;
-
 #endif

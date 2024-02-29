@@ -13,7 +13,7 @@ int main() {
 
   Optimizer optim = Optimizer(r_i, r_f, v_i, v_f, n, t_f, u_max, theta_max, m);
   optim.solve();
-  optim.save("traj.txt");
+  optim.save("data/traj.csv");
 
   return 0;
 }

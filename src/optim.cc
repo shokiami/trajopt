@@ -55,20 +55,21 @@ void Optimizer::solve() {
   cout << "Solver message: " << solver.getResultString() << endl;
   cout << "Solver exitcode: " << solver.getExitCode() << endl << endl;
   cout << "Solution:" << endl;
-  cout << setprecision(3) << fixed;
+  cout << setprecision(4) << fixed;
   for (int i = 0; i <= n; i++) {
     Eigen::Vector3d control = eval(u[i]);
     Eigen::Vector3d point = eval(r[i]);
     controls.push_back(control);
     traj.push_back(point);
-    cout << point.transpose() << endl;
+    cout << point(0) << " " << point(1) << " " << point(2) << endl;
   }
 }
 
-void Optimizer::save(string filename) {
-  ofstream file = ofstream("data/" + filename);
-  file << "r_x r_y r_z u_x u_y u_z" << endl;
+void Optimizer::save(string path) {
+  ofstream csv = ofstream(path);
+  csv << "r_x,r_y,r_z,u_x,u_y,u_z" << endl;
   for (int i = 0; i <= n; i++) {
-    file << traj[i].transpose() << " " << controls[i].transpose() << endl;
+    csv << traj[i](0) << "," << traj[i](1) << "," << traj[i](2) << ",";
+    csv << controls[i](0) << "," << controls[i](1) << "," << controls[i](2) << endl;
   }
 }
