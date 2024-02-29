@@ -24,11 +24,11 @@ class Optimizer {
   double m;
 
   OptimizationProblem qp;
-  MatrixX r;
-  MatrixX v;
-  MatrixX a;
-  MatrixX u;
-  VectorX gamma;
+  vector<VectorX> r;
+  vector<VectorX> v;
+  vector<VectorX> a;
+  vector<VectorX> u;
+  vector<Scalar> gamma;
 };
 
 #endif

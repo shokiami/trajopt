@@ -9,6 +9,9 @@
 
 using std::cout;
 using std::endl;
+using std::fixed;
+using std::setprecision;
+using std::to_string;
 using std::string;
 using std::vector;
 

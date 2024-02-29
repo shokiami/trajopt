@@ -3,45 +3,49 @@
 Optimizer::Optimizer(Eigen::VectorXd r_i, Eigen::VectorXd r_f, Eigen::VectorXd v_i, Eigen::VectorXd v_f,
                      size_t n, double t_f, double u_max, double theta_max, double m) :
                      n(n), t_f(t_f), u_max(u_max), theta_max(theta_max), m(m) {
-  Eigen::Vector3d g(0.0, 0.0, 9.81);
-  double dt = t_f / n;
 
   // variables
-  r = qp.addVariable("r", 3, n + 1);
-  v = qp.addVariable("v", 3, n + 1);
-  a = qp.addVariable("a", 3, n + 1);
-  u = qp.addVariable("u", 3, n + 1);
-  gamma = qp.addVariable("gamma", n + 1);
+  for (size_t i = 0; i <= n; i++) {
+    r.push_back(qp.addVariable("r_" + to_string(i), 3));
+    v.push_back(qp.addVariable("v_" + to_string(i), 3));
+    a.push_back(qp.addVariable("a_" + to_string(i), 3));
+    u.push_back(qp.addVariable("u_" + to_string(i), 3));
+    gamma.push_back(qp.addVariable("gamma_" + to_string(i)));
+  }
 
   // cost function
-  qp.addCostTerm(gamma.squaredNorm());
+  for (size_t i = 0; i <= n; i++){
+    qp.addCostTerm(gamma[i] * gamma[i]);
+  }
 
   // dynamics
+  Eigen::Vector3d g(0.0, 0.0, 9.81);
   for (size_t i = 0; i <= n; i++) {
-    qp.addConstraint(equalTo(a.col(i), par(1.0 / m) * u.col(i) + par(g)));
+    qp.addConstraint(equalTo(a[i], par(1.0 / m) * u[i] + par(g)));
   }
+  double dt = t_f / n;
   for (size_t i = 0; i < n; i++) {
-    qp.addConstraint(equalTo(r.col(i + 1), r.col(i) + par(dt) * v.col(i) + par(1.0 / 4.0 * dt * dt) * a.col(i) + par(1.0 / 4.0 * dt * dt) * a.col(i + 1)));
-    qp.addConstraint(equalTo(v.col(i + 1), v.col(i) + par(1.0 / 2.0 * dt) * a.col(i) + par(1.0 / 2.0 * dt) * a.col(i + 1)));
+    qp.addConstraint(equalTo(r[i + 1], r[i] + par(dt) * v[i] + par(1.0 / 4.0 * dt * dt) * a[i] + par(1.0 / 4.0 * dt * dt) * a[i + 1]));
+    qp.addConstraint(equalTo(v[i + 1], v[i] + par(1.0 / 2.0 * dt) * a[i] + par(1.0 / 2.0 * dt) * a[i + 1]));
   }
 
   // control constraints
   for (size_t i = 0; i <= n; i++) {
-    qp.addConstraint(lessThan(a.col(i).norm(), gamma(i)));
-    qp.addConstraint(greaterThan(gamma(i), 0.0));
-    qp.addConstraint(lessThan(gamma(i), u_max));
-    qp.addConstraint(lessThan(par(cos(theta_max)) * gamma(i), u.col(i)(2)));
+    qp.addConstraint(lessThan(a[i].norm(), gamma[i]));
+    qp.addConstraint(greaterThan(gamma[i], 0.0));
+    qp.addConstraint(lessThan(gamma[i], u_max));
+    qp.addConstraint(lessThan(par(cos(theta_max)) * gamma[i], u[i](2)));
   }
 
   // initial conditions
-  qp.addConstraint(equalTo(r.col(0), par(r_i)));
-  qp.addConstraint(equalTo(v.col(0), par(v_i)));
-  qp.addConstraint(equalTo(u.col(0), par(g)));
+  qp.addConstraint(equalTo(r[0], par(r_i)));
+  qp.addConstraint(equalTo(v[0], par(v_i)));
+  qp.addConstraint(equalTo(u[0], par(g)));
 
   // final conditions
-  qp.addConstraint(equalTo(r.col(n), par(r_f)));
-  qp.addConstraint(equalTo(v.col(n), par(v_f)));
-  qp.addConstraint(equalTo(u.col(n), par(g)));
+  qp.addConstraint(equalTo(r[n], par(r_f)));
+  qp.addConstraint(equalTo(v[n], par(v_f)));
+  qp.addConstraint(equalTo(u[n], par(g)));
 }
 
 void Optimizer::solve() {
@@ -51,8 +55,8 @@ void Optimizer::solve() {
   cout << "Solver message: " << solver.getResultString() << endl;
   cout << "Solver exitcode: " << solver.getExitCode() << endl << endl;
   cout << "Solution:" << endl;
-  cout << std::setprecision(3) << std::fixed;
+  cout << setprecision(3) << fixed;
   for (size_t i = 0; i <= n; i++) {
-    cout << eval(r.col(i).transpose()) << endl;
+    cout << eval(r[i].transpose()) << endl;
   }
 }
