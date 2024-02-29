@@ -12,7 +12,7 @@ u_x = df['u_x'].to_numpy(dtype=float)
 u_y = df['u_y'].to_numpy(dtype=float)
 u_z = df['u_z'].to_numpy(dtype=float)
 
-ax = plt.figure('Optimal Trajectory').add_subplot(projection='3d')
+ax = plt.figure('trajopt').add_subplot(projection='3d')
 ax.plot(r_x, r_y, r_z)
 for i in range(len(r_x)):
   ax.quiver(r_x, r_y, r_z, U_SCALAR * u_x, U_SCALAR * u_y, U_SCALAR * u_z, color='red')

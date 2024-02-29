@@ -21,7 +21,7 @@ Optimizer::Optimizer(Eigen::Vector3d r_i, Eigen::Vector3d r_f, Eigen::Vector3d v
   // dynamics
   Eigen::Vector3d g(0.0, 0.0, 9.81);
   for (int i = 0; i <= n; i++) {
-    qp.addConstraint(equalTo(a[i], par(1.0 / m) * u[i] + par(g)));
+    qp.addConstraint(equalTo(a[i], par(1.0 / m) * u[i] - par(g)));
   }
   double dt = t_f / n;
   for (int i = 0; i < n; i++) {

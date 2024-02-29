@@ -20,3 +20,8 @@ Run:
 ```
 ./main
 ```
+
+Visualize:
+```
+python3 script/viz.py
+```
