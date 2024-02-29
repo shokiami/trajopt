@@ -8,12 +8,11 @@ mkdir Epigraph/build
 cmake -S Epigraph -B Epigraph/build -DENABLE_ECOS=TRUE -DENABLE_OSQP=TRUE
 cmake --build Epigraph/build
 
-# set up libs dir
-mkdir libs
-cp Epigraph/build/libepigraph.so libs
-cp Epigraph/build/solvers/ecos/libecos.so libs
-cp Epigraph/build/solvers/osqp/out/libosqp.so libs
-export LD_LIBRARY_PATH=libs
+# set up lib dir
+mkdir lib
+cp Epigraph/build/libepigraph.so lib
+cp Epigraph/build/solvers/ecos/libecos.so lib
+cp Epigraph/build/solvers/osqp/out/libosqp.so lib
 
 # set up obj dir
 mkdir obj
