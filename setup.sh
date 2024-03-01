@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # clone epigraph
-git clone git@github.com:EmbersArc/Epigraph.git
+git clone https://github.com/EmbersArc/Epigraph.git
 
 # run cmake
 mkdir Epigraph/build
