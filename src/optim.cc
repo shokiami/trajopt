@@ -15,7 +15,7 @@ Optimizer::Optimizer(Eigen::Vector3d r_i, Eigen::Vector3d r_f, Eigen::Vector3d v
 
   // cost function
   for (int i = 0; i <= n; i++){
-    qp.addCostTerm(gamma[i] * gamma[i]);
+    qp.addCostTerm(gamma[i]);
   }
 
   // dynamics
