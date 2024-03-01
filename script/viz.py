@@ -4,13 +4,7 @@ import matplotlib.pyplot as plt
 
 VEC_SCALAR = 0.1
 
-df = pd.read_csv('data/traj.csv')
-r_x = df['r_x'].to_numpy(dtype=float)
-r_y = df['r_y'].to_numpy(dtype=float)
-r_z = df['r_z'].to_numpy(dtype=float)
-u_x = df['u_x'].to_numpy(dtype=float)
-u_y = df['u_y'].to_numpy(dtype=float)
-u_z = df['u_z'].to_numpy(dtype=float)
+r_x, r_y, r_z, u_x, u_y, u_z = pd.read_csv('data/traj.csv').to_numpy(dtype=float).swapaxes(0, 1)
 
 ax = plt.figure('trajopt').add_subplot(projection='3d')
 ax.set_title('Optimal Trajectory')
