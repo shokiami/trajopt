@@ -26,3 +26,7 @@ Visualize:
 ```
 python3 script/viz.py
 ```
+
+Example:
+
+![](trajopt.png)
