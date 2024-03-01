@@ -5,7 +5,7 @@ int main() {
   Eigen::Vector3d r_f(10.0, 10.0, 10.0);
   Eigen::Vector3d v_i(0.0, 0.0, 0.0);
   Eigen::Vector3d v_f(0.0, 0.0, 0.0);
-  int n = 25;
+  int n = 50;
   double t_f = 6;
   double u_max = 10.0;
   double theta_max = M_PI / 2;
