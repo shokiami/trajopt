@@ -1,6 +1,6 @@
 FLAGS := -std=c++17 -O3
 LIBS := lib/libepigraph.so lib/libecos.so lib/libosqp.so
-INCLUDE := -I usr/include/eigen3/ -I Epigraph/include/ -I Epigraph/solvers/ecos/include \
+INCLUDE := -I /usr/include/eigen3/ -I Epigraph/include/ -I Epigraph/solvers/ecos/include \
 					 -I Epigraph/solvers/ecos/external/SuiteSparse_config -I Epigraph/solvers/osqp/include
 
 SOURCES := $(wildcard src/*.cc)
