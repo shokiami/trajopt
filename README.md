@@ -1,6 +1,6 @@
 # trajopt
 
-A lightweight drone flight trajectory optimizer.
+A lightweight autonomous drone flight trajectory optimizer in C++.
 
 Dependencies:
 - [Epigraph](https://github.com/EmbersArc/Epigraph)
