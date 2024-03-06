@@ -1,8 +1,8 @@
 #include "optim.h"
 
 Optimizer::Optimizer(Eigen::Vector3d r_i, Eigen::Vector3d r_f, Eigen::Vector3d v_i, Eigen::Vector3d v_f,
-                     int n, double t_f, double u_max, double theta_max, double m) :
-                     n(n), t_f(t_f), u_max(u_max), theta_max(theta_max), m(m) {
+                     int n, double t_f, double u_min, double u_max, double theta_max, double m) :
+                     n(n), t_f(t_f), u_min(u_min), u_max(u_max), theta_max(theta_max), m(m) {
 
   // variables
   for (int i = 0; i <= n; i++) {
@@ -32,7 +32,7 @@ Optimizer::Optimizer(Eigen::Vector3d r_i, Eigen::Vector3d r_f, Eigen::Vector3d v
   // control constraints
   for (int i = 0; i <= n; i++) {
     qp.addConstraint(lessThan(a[i].norm(), gamma[i]));
-    qp.addConstraint(greaterThan(gamma[i], 0.0));
+    qp.addConstraint(greaterThan(gamma[i], u_min));
     qp.addConstraint(lessThan(gamma[i], u_max));
     qp.addConstraint(lessThan(par(cos(theta_max)) * gamma[i], u[i](2)));
   }
@@ -40,12 +40,12 @@ Optimizer::Optimizer(Eigen::Vector3d r_i, Eigen::Vector3d r_f, Eigen::Vector3d v
   // initial conditions
   qp.addConstraint(equalTo(r[0], par(r_i)));
   qp.addConstraint(equalTo(v[0], par(v_i)));
-  qp.addConstraint(equalTo(u[0], par(g)));
+  qp.addConstraint(equalTo(a[0], 0.0));
 
   // final conditions
   qp.addConstraint(equalTo(r[n], par(r_f)));
   qp.addConstraint(equalTo(v[n], par(v_f)));
-  qp.addConstraint(equalTo(u[n], par(g)));
+  qp.addConstraint(equalTo(a[n], 0.0));
 }
 
 void Optimizer::solve() {
