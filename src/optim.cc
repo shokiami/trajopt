@@ -31,7 +31,7 @@ Optimizer::Optimizer(Eigen::Vector3d r_i, Eigen::Vector3d r_f, Eigen::Vector3d v
 
   // control constraints
   for (int i = 0; i <= n; i++) {
-    qp.addConstraint(lessThan(a[i].norm(), gamma[i]));
+    qp.addConstraint(lessThan(u[i].norm(), gamma[i]));
     qp.addConstraint(greaterThan(gamma[i], u_min));
     qp.addConstraint(lessThan(gamma[i], u_max));
     qp.addConstraint(lessThan(par(cos(theta_max)) * gamma[i], u[i](2)));
