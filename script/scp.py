@@ -3,6 +3,7 @@ import cvxpy as cp
 import numpy as np
 
 VIRTUAL_BUF = 1e4
+TRUST_REGION = 1e-1
 CONV_EPS = 1e-2
 
 r_i = np.array([0.0, 0.0, 0.0])
@@ -32,11 +33,11 @@ def solve(r_ref):
   gamma = cp.Variable(n + 1)
   eta = cp.Variable((n + 1, len(obs_c)))
 
-  cost = cp.sum_squares(gamma) + VIRTUAL_BUF * cp.sum_squares(eta)
+  cost = cp.sum_squares(gamma) + VIRTUAL_BUF * cp.sum(eta) + TRUST_REGION * cp.sum_squares(r - r_ref)
   constr = []
 
   # dynamics
-  g = np.array([0, 0, 9.81])
+  g = np.array([0.0, 0.0, 9.81])
   for i in range(n + 1):
     constr += [a[i] == u[i] / mass - g]
   dt = t_f / n
@@ -65,8 +66,7 @@ def solve(r_ref):
       constr += [eta[i, j] >= 0.0]
 
   prob = cp.Problem(cp.Minimize(cost), constr)
-  result = prob.solve(solver=cp.ECOS)
-  print(result)
+  result = prob.solve(solver=cp.ECOS, max_iters=1000)
   return result, r.value, u.value
 
 if __name__ == '__main__':
@@ -78,5 +78,7 @@ if __name__ == '__main__':
     if np.abs(cost - prev_cost) < CONV_EPS:
       break
     prev_cost = cost
+    r_ref = r
+    print(cost)
 
   plot(r, u, obs_c, obs_r)
