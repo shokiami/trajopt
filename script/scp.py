@@ -3,8 +3,8 @@ import cvxpy as cp
 import numpy as np
 
 VIRTUAL_BUF = 1e4
-TRUST_REGION = 1e-1
-CONV_EPS = 1e-2
+TRUST_REGION = 1e-2
+CONV_EPS = 1e-1
 
 r_i = np.array([0.0, 0.0, 0.0])
 r_f = np.array([10.0, 10.0, 10.0])
@@ -13,17 +13,20 @@ v_f = np.array([0.0, 0.0, 0.0])
 a_i = np.array([0.0, 0.0, 0.0])
 a_f = np.array([0.0, 0.0, 0.0])
 n = 50
-t_f = 14.0
+t_f = 12.0
 u_min = 1.0
 u_max = 10.0
 theta_max = np.pi / 4
 mass = 1.0
 
 obs_c = np.array([
-  [3.0, 2.0, 3.0],
-  [5.0, 9.0, 9.0]
+  [2.5, 1.5, 2.5],
+  [5.0, 6.0, 4.0],
+  [10.0, 8.0, 7.5],
+  [1.0, 9.0, 9.0],
+  [9.0, 1.0, 3.0]
 ])
-obs_r = np.array([2.0, 4.0])
+obs_r = np.array([2.0, 3.0, 2.5, 3.5, 1.5])
 
 def solve(r_ref):
   r = cp.Variable((n + 1, 3))
@@ -33,8 +36,12 @@ def solve(r_ref):
   gamma = cp.Variable(n + 1)
   eta = cp.Variable((n + 1, len(obs_c)))
 
-  cost = cp.sum_squares(gamma) + VIRTUAL_BUF * cp.sum(eta) + TRUST_REGION * cp.sum_squares(r - r_ref)
+  cost = 0.0
   constr = []
+
+  cost = cp.sum_squares(gamma)
+  cost += VIRTUAL_BUF * cp.sum(eta)
+  cost += TRUST_REGION * cp.sum_squares(r - r_ref)
 
   # dynamics
   g = np.array([0.0, 0.0, 9.81])
@@ -66,7 +73,7 @@ def solve(r_ref):
       constr += [eta[i, j] >= 0.0]
 
   prob = cp.Problem(cp.Minimize(cost), constr)
-  result = prob.solve(solver=cp.ECOS, max_iters=1000)
+  result = prob.solve(solver=cp.ECOS)
   return result, r.value, u.value
 
 if __name__ == '__main__':
