@@ -3,7 +3,7 @@ import cvxpy as cp
 import numpy as np
 
 VIRTUAL_BUF = 1e4
-TRUST_REGION = 1e-2
+STEP_SIZE = 100.0
 CONV_EPS = 1e-1
 
 r_i = np.array([0.0, 0.0, 0.0])
@@ -41,7 +41,7 @@ def solve(r_ref):
 
   cost = cp.sum_squares(gamma)
   cost += VIRTUAL_BUF * cp.sum(eta)
-  cost += TRUST_REGION * cp.sum_squares(r - r_ref)
+  cost += 1.0 / (2.0 * STEP_SIZE) * cp.sum_squares(r - r_ref)
 
   # dynamics
   g = np.array([0.0, 0.0, 9.81])
