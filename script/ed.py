@@ -63,7 +63,6 @@ def prop_dynamics(x_i, u_i, u_f, t_i, t_f):
     return f(x, u_foh)
 
   x_prop = solve_ivp(x_dot, (t_i, t_f), x_i).y[:,-1]
-
   return x_prop
 
 def solve(x_ref, u_ref):
