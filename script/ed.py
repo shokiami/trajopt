@@ -33,37 +33,38 @@ def B(t):
   return 1.0 / MASS * np.vstack([np.zeros((3, 3)), np.eye(3)])
 
 def f(x, u):
-  r_dot = x[3:]
-  v_dot = u / MASS - np.array([0.0, 0.0, 9.81])
-  x_dot = np.hstack([r_dot, v_dot])
-  return x_dot
+  return np.hstack([x[3:], u / MASS - np.array([0.0, 0.0, 9.81])])
 
-def init_jacobians(t_i, t_f):
-  def Ak_dot(t, Ak_flat):
-    return (A(t) @ Ak_flat.reshape((6, 6))).flatten()
+def integrate(x_i, u_i, u_f, t_i, t_f):
+  def concat(x_prop, Ak, Bk_1, Bk_2):
+    return np.hstack([x_prop, Ak.flatten(), Bk_1.flatten(), Bk_2.flatten()])
 
-  def Bk_1_dot(t, Bk_1_flat):
-    return (A(t) @ Bk_1_flat.reshape((6, 3)) + B(t) * (t_f - t) / (t_f - t_i)).flatten()
+  def split(res):
+    x_prop = res[0:6]
+    Ak = res[6:42].reshape((6, 6))
+    Bk_1 = res[42:60].reshape((6, 3))
+    Bk_2 = res[60:78].reshape((6, 3))
 
-  def Bk_2_dot(t, Bk_2_flat):
-    return (A(t) @ Bk_2_flat.reshape((6, 3)) + B(t) * (t - t_i) / (t_f - t_i)).flatten()
+    return x_prop, Ak, Bk_1, Bk_2
+
+  def res_dot(t, res):
+    x_prop, Ak, Bk_1, Bk_2 = split(res)
+
+    x_dot = f(x_prop, (t_f - t) / (t_f - t_i) * u_i + (t - t_i) / (t_f - t_i) * u_f)
+    Ak_dot = A(t) @ Ak
+    Bk_1_dot = A(t) @ Bk_1 + B(t) * (t_f - t) / (t_f - t_i)
+    Bk_2_dot = A(t) @ Bk_2 + B(t) * (t - t_i) / (t_f - t_i)
+
+    return concat(x_dot, Ak_dot, Bk_1_dot, Bk_2_dot)
 
   Ak_i = np.eye(6)
   Bk_1_i = np.zeros((6, 3))
   Bk_2_i = np.zeros((6, 3))
+  res_i = concat(x_i, Ak_i, Bk_1_i, Bk_2_i)
+  res = solve_ivp(res_dot, (t_i, t_f), res_i).y[:, -1]
+  x_prop, Ak, Bk_1, Bk_2 = split(res)
 
-  Ak = solve_ivp(Ak_dot, (t_i, t_f), Ak_i.flatten()).y[:, -1].reshape((6, 6))
-  Bk_1 = solve_ivp(Bk_1_dot, (t_i, t_f), Bk_1_i.flatten()).y[:, -1].reshape((6, 3))
-  Bk_2 = solve_ivp(Bk_2_dot, (t_i, t_f), Bk_2_i.flatten()).y[:, -1].reshape((6, 3))
-  return Ak, Bk_1, Bk_2
-
-def prop_dynamics(x_i, u_i, u_f, t_i, t_f):
-  def x_dot(t, x):
-    u_foh = (t_f - t) / (t_f - t_i) * u_i + (t - t_i) / (t_f - t_i) * u_f
-    return f(x, u_foh)
-
-  x_prop = solve_ivp(x_dot, (t_i, t_f), x_i).y[:,-1]
-  return x_prop
+  return x_prop, Ak, Bk_1, Bk_2
 
 def solve(x_ref, u_ref):
   x = cp.Variable((N + 1, 6))
@@ -81,9 +82,8 @@ def solve(x_ref, u_ref):
 
   # dynamics constraints
   delta_t = T_F / N
-  Ak, Bk_1, Bk_2 = init_jacobians(0.0, delta_t)
   for i in range(N):
-    x_prop = prop_dynamics(x_ref[i], u_ref[i], u_ref[i + 1], 0.0, delta_t)
+    x_prop, Ak, Bk_1, Bk_2 = integrate(x_ref[i], u_ref[i], u_ref[i + 1], 0.0, delta_t)
     constr += [x[i + 1] == x_prop + Ak @ (x[i] - x_ref[i]) + Bk_1 @ (u[i] - u_ref[i]) + Bk_2 @ (u[i + 1] - u_ref[i + 1])]
 
   # control constraints
@@ -108,6 +108,7 @@ def solve(x_ref, u_ref):
 
   prob = cp.Problem(cp.Minimize(cost), constr)
   result = prob.solve(solver=cp.ECOS)
+
   return result, x.value, u.value
 
 if __name__ == '__main__':
