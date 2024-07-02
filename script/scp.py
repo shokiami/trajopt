@@ -2,9 +2,10 @@ from viz import plot
 import cvxpy as cp
 import numpy as np
 
+U_W = 1e2
 VIRTUAL_BUF = 1e4
-STEP_SIZE = 100.0
-CONV_EPS = 1e-1
+STEP_SIZE = 1e2
+CONV_EPS = 1e-2
 
 R_I = [0.0, 0.0, 0.0]
 R_F = [10.0, 10.0, 10.0]
@@ -12,8 +13,8 @@ V_I = [0.0, 0.0, 0.0]
 V_F = [0.0, 0.0, 0.0]
 A_I = [0.0, 0.0, 0.0]
 A_F = [0.0, 0.0, 0.0]
-N = 25
-T_F = 3.0
+N = 20
+T_F = 5.0
 U_MIN = 1.0
 U_MAX = 20.0
 THETA_MAX = np.pi / 4.0
@@ -21,8 +22,8 @@ MASS = 1.0
 
 OBS = [
   ((2.5, 1.5, 2.5), 2.0),
-  ((5.0, 6.0, 4.0), 3.0),
-  ((10.0, 8.0, 7.5), 2.5),
+  ((5.0, 5.5, 5.0), 3.0),
+  ((7.5, 8.0, 9.5), 2.5),
   ((1.0, 9.0, 9.0), 3.5),
   ((9.0, 1.0, 3.0), 1.5),
 ]
@@ -38,10 +39,10 @@ def solve(r_ref):
   cost = 0.0
   constr = []
 
-  cost += cp.sum_squares(gamma)
+  cost += U_W * cp.norm2(gamma)
   for i in range(N + 1):
-    cost += VIRTUAL_BUF * cp.norm1(eta[i])
-    cost += 1.0 / (2.0 * STEP_SIZE) * cp.norm(r[i] - r_ref[i])
+    cost += VIRTUAL_BUF * cp.norm2(eta[i])
+    cost += 1.0 / (2.0 * STEP_SIZE) * cp.norm2(r[i] - r_ref[i])
 
   # dynamics constraints
   g = [0.0, 0.0, 9.81]
@@ -55,7 +56,7 @@ def solve(r_ref):
 
   # control constraints
   for i in range(N + 1):
-    constr += [cp.norm(u[i]) <= gamma[i]]
+    constr += [cp.norm2(u[i]) <= gamma[i]]
     constr += [U_MIN <= gamma[i], gamma[i] <= U_MAX]
     constr += [np.cos(THETA_MAX) * gamma[i] <= u[i, 2]]
 
@@ -69,8 +70,7 @@ def solve(r_ref):
   for i in range(N + 1):
     for j in range(len(OBS)):
       obs_c, obs_r = OBS[j]
-      d = r_ref[i] - obs_c
-      constr += [obs_r * obs_r - d.T @ d + 2.0 * d.T @ (r_ref[i] - r[i]) <= eta[i, j]]
+      constr += [obs_r * obs_r - cp.sum_squares(r_ref[i] - obs_c) + 2.0 * (r_ref[i] - obs_c).T @ (r_ref[i] - r[i]) <= eta[i, j]]
       constr += [eta[i, j] >= 0.0]
 
   prob = cp.Problem(cp.Minimize(cost), constr)
