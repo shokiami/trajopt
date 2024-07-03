@@ -4,7 +4,7 @@ import numpy as np
 from scipy.integrate import solve_ivp
 
 U_W = 1e-1
-T_W = 1e2
+T_W = 1e3
 VIRTUAL_BUF = 1e4
 X_STEP = 1e2
 U_STEP = 1e2
@@ -16,7 +16,8 @@ X_F = [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
 U_I = [0.0, 0.0, 9.81]
 U_F = [0.0, 0.0, 9.81]
 N = 20
-T_MAX = 5.0
+T_MIN = 1.0
+T_MAX = 4.0
 U_MIN = 1.0
 U_MAX = 20.0
 THETA_MAX = np.pi / 4.0
@@ -97,8 +98,6 @@ def solve(x_ref, u_ref, T_ref):
     cost += VIRTUAL_BUF * cp.norm2(eta[i])
     cost += 1.0 / (2.0 * X_STEP) * cp.norm2(x[i] - x_ref[i])
     cost += 1.0 / (2.0 * U_STEP) * cp.norm2(u[i] - u_ref[i])
-  for i in range(N):
-    cost += 1.0 / (2.0 * T_STEP) * cp.norm2(T[i] - T_ref[i])
 
   # dynamics constraints
   for i in range(N):
@@ -126,7 +125,8 @@ def solve(x_ref, u_ref, T_ref):
 
   # time interval constraints
   for i in range(N):
-    constr += [0.0 <= T[i], T[i] <= T_MAX / N]
+    constr += [T_MIN / N <= T[i], T[i] <= T_MAX / N]
+    constr += [cp.norm2(T[i] - T_ref[i]) <= T_STEP]
 
   prob = cp.Problem(cp.Minimize(cost), constr)
   result = prob.solve(solver=cp.ECOS)
