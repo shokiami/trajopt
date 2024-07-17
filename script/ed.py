@@ -38,19 +38,19 @@ def B(t):
 
 # ALGORITHM
 def integrate(x_i, u_i, u_f, t_i, t_f):
-  def concat(x_prop, Ak, Bk_1, Bk_2):
-    return np.hstack([x_prop, Ak.flatten(), Bk_1.flatten(), Bk_2.flatten()])
+  def concat(x_prop, Ak, Bk_0, Bk_1):
+    return np.hstack([x_prop, Ak.flatten(), Bk_0.flatten(), Bk_1.flatten()])
 
   def split(res):
     x_prop = res[0:6]
     Ak = res[6:42].reshape((6, 6))
-    Bk_1 = res[42:60].reshape((6, 3))
-    Bk_2 = res[60:78].reshape((6, 3))
+    Bk_0 = res[42:60].reshape((6, 3))
+    Bk_1 = res[60:78].reshape((6, 3))
 
-    return x_prop, Ak, Bk_1, Bk_2
+    return x_prop, Ak, Bk_0, Bk_1
 
   def res_dot(t, res):
-    x_prop, Ak, Bk_1, Bk_2 = split(res)
+    x_prop, Ak, Bk_0, Bk_1 = split(res)
 
     u_foh = (t_f - t) / (t_f - t_i) * u_i + (t - t_i) / (t_f - t_i) * u_f
     f_xu = f(x_prop, u_foh)
@@ -59,19 +59,19 @@ def integrate(x_i, u_i, u_f, t_i, t_f):
   
     x_dot = f_xu
     Ak_dot = A_t @ Ak
-    Bk_1_dot = A_t @ Bk_1 + B_t * (t_f - t) / (t_f - t_i)
-    Bk_2_dot = A_t @ Bk_2 + B_t * (t - t_i) / (t_f - t_i)
+    Bk_0_dot = A_t @ Bk_0 + B_t * (t_f - t) / (t_f - t_i)
+    Bk_1_dot = A_t @ Bk_1 + B_t * (t - t_i) / (t_f - t_i)
 
-    return concat(x_dot, Ak_dot, Bk_1_dot, Bk_2_dot)
+    return concat(x_dot, Ak_dot, Bk_0_dot, Bk_1_dot)
 
   Ak_i = np.eye(6)
+  Bk_0_i = np.zeros((6, 3))
   Bk_1_i = np.zeros((6, 3))
-  Bk_2_i = np.zeros((6, 3))
-  res_i = concat(x_i, Ak_i, Bk_1_i, Bk_2_i)
+  res_i = concat(x_i, Ak_i, Bk_0_i, Bk_1_i)
   res = solve_ivp(res_dot, (t_i, t_f), res_i).y[:, -1]
-  x_prop, Ak, Bk_1, Bk_2 = split(res)
+  x_prop, Ak, Bk_0, Bk_1 = split(res)
 
-  return x_prop, Ak, Bk_1, Bk_2
+  return x_prop, Ak, Bk_0, Bk_1
 
 def solve(x_ref, u_ref):
   x = cp.Variable((N + 1, 6))
@@ -91,8 +91,8 @@ def solve(x_ref, u_ref):
   # dynamics constraints
   delta_t = T_F / N
   for i in range(N):
-    x_prop, Ak, Bk_1, Bk_2 = integrate(x_ref[i], u_ref[i], u_ref[i + 1], 0.0, delta_t)
-    constr += [x[i + 1] == x_prop + Ak @ (x[i] - x_ref[i]) + Bk_1 @ (u[i] - u_ref[i]) + Bk_2 @ (u[i + 1] - u_ref[i + 1])]
+    x_prop, Ak, Bk_0, Bk_1 = integrate(x_ref[i], u_ref[i], u_ref[i + 1], 0.0, delta_t)
+    constr += [x[i + 1] == x_prop + Ak @ (x[i] - x_ref[i]) + Bk_0 @ (u[i] - u_ref[i]) + Bk_1 @ (u[i + 1] - u_ref[i + 1])]
 
   # control constraints
   for i in range(N + 1):
