@@ -93,7 +93,7 @@ def solve(x_ref, u_ref, T_ref):
   cost += U_W * cp.norm2(gamma)
   cost += T_W * cp.norm2(T)
   for i in range(N + 1):
-    cost += VIRTUAL_BUF * cp.norm2(eta[i])
+    cost += VIRTUAL_BUF * cp.norm1(eta[i])
     cost += 1.0 / (2.0 * X_STEP) * cp.norm2(x[i] - x_ref[i])
     cost += 1.0 / (2.0 * U_STEP) * cp.norm2(u[i] - u_ref[i])
 
@@ -131,6 +131,22 @@ def solve(x_ref, u_ref, T_ref):
 
   return result, x.value, u.value, T.value
 
+def single_shot(x_i, u, T):
+  def x_dot(t, x):
+    i = 0
+    while True:
+      if t - T[i] < 0:
+        break
+      t -= T[i]
+      i += 1
+    tau = t / T[i]
+    u_foh = (1.0 - tau) * u[i] + tau * u[i + 1]
+    return f(x, u_foh)
+  
+  res = solve_ivp(x_dot, (0.0, np.sum(T)), x_i, max_step=1e-2).y[:]
+  r_prop = res[:3].swapaxes(0, 1)
+  return r_prop
+
 if __name__ == '__main__':
   x_ref = np.linspace(X_I, X_F, N + 1)
   u_ref = np.zeros((N + 1, 3))
@@ -147,6 +163,7 @@ if __name__ == '__main__':
     T_ref = T
     print(np.sum(T))
 
-  pos = x[:, 0:3]
-  control = u
-  plot(pos, control, OBS)
+  r = x[:, 0:3]
+  r_prop = single_shot(X_I, u, T)
+
+  plot(r, u, OBS, r_prop)

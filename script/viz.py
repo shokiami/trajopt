@@ -11,7 +11,7 @@ def draw_sphere(ax, x0, y0, z0, r):
   z = r * np.cos(v) + z0
   ax.plot_surface(x, y, z, color='blue', alpha=0.5)
 
-def plot(r, u, obs):
+def plot(r, u, obs, r_prop=None):
   ax = plt.figure('trajopt').add_subplot(projection='3d')
   ax.set_title('Optimal Trajectory')
 
@@ -32,6 +32,11 @@ def plot(r, u, obs):
   for i in range(len(obs)):
     (obs_x, obs_y, obs_z), obs_r = obs[i]
     draw_sphere(ax, obs_x, obs_y, obs_z, obs_r)
+
+  # plot propagated traj
+  if r_prop is not None:
+    r_prop_x, r_prop_y, r_prop_z = r_prop.swapaxes(0, 1)
+    ax.plot(r_prop_x, r_prop_y, r_prop_z)
 
   ax.set_xlim(-1.0, 11.0)
   ax.set_ylim(-1.0, 11.0)

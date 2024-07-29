@@ -84,7 +84,7 @@ def solve(x_ref, u_ref):
 
   cost += U_W * cp.norm2(gamma)
   for i in range(N + 1):
-    cost += VIRTUAL_BUF * cp.norm2(eta[i])
+    cost += VIRTUAL_BUF * cp.norm1(eta[i])
     cost += 1.0 / (2.0 * X_STEP) * cp.norm2(x[i] - x_ref[i])
     cost += 1.0 / (2.0 * U_STEP) * cp.norm2(u[i] - u_ref[i])
 
