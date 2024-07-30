@@ -41,6 +41,7 @@ def plot(r, u, obs, r_prop=None):
   ax.set_xlim(-1.0, 11.0)
   ax.set_ylim(-1.0, 11.0)
   ax.set_zlim(-1.0, 11.0)
+  ax.set_aspect('equal')
   ax.legend()
   plt.show()
 

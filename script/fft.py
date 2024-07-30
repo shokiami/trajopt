@@ -15,7 +15,7 @@ X_I = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 X_F = [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
 U_I = [0.0, 0.0, 9.81]
 U_F = [0.0, 0.0, 9.81]
-N = 30
+N = 20
 T_MIN = 1.0
 T_MAX = 4.0
 U_MIN = 1.0
@@ -132,18 +132,15 @@ def solve(x_ref, u_ref, T_ref):
   return result, x.value, u.value, T.value
 
 def single_shot(x_i, u, T):
+  T_cumsum = np.cumsum(T)
+
   def x_dot(t, x):
-    i = 0
-    while True:
-      if t - T[i] < 0:
-        break
-      t -= T[i]
-      i += 1
-    tau = t / T[i]
+    i = np.searchsorted(T_cumsum, t)
+    tau = (t - (T_cumsum[i - 1] if i > 0 else 0.0)) / T[i]
     u_foh = (1.0 - tau) * u[i] + tau * u[i + 1]
     return f(x, u_foh)
   
-  res = solve_ivp(x_dot, (0.0, np.sum(T)), x_i, max_step=1e-2).y[:]
+  res = solve_ivp(x_dot, (0.0, T_cumsum[-1]), x_i, max_step=1e-2).y[:]
   r_prop = res[:3].swapaxes(0, 1)
   return r_prop
 
@@ -161,9 +158,10 @@ if __name__ == '__main__':
     x_ref = x
     u_ref = u
     T_ref = T
-    print(np.sum(T))
+    print(cost)
 
   r = x[:, 0:3]
   r_prop = single_shot(X_I, u, T)
+  print(f'final time: {np.sum(T)}')
 
   plot(r, u, OBS, r_prop)
