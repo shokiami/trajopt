@@ -3,20 +3,17 @@ import cvxpy as cp
 import numpy as np
 from scipy.integrate import solve_ivp
 
-U_W = 1e-1
-T_W = 1e3
-VIRTUAL_BUF = 1e4
-X_STEP = 1e0
-U_STEP = 1e0
+T_W = 1e1
+C_W = 1e4
 T_STEP = 1e-1
-CONV_EPS = 1e-1
+CONV_EPS = 1e-3
 
 X_I = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 X_F = [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
 U_I = [0.0, 0.0, 9.81]
 U_F = [0.0, 0.0, 9.81]
-N = 10
-T_MIN = 1.0
+N = 5
+T_MIN = 2.0
 T_MAX = 4.0
 U_MIN = 1.0
 U_MAX = 20.0
@@ -46,7 +43,7 @@ def dfdu(x, u):
 # OBSTACLE CONSTRAINTS
 def g(x, u):
   P = np.hstack([np.eye(3), np.zeros((3, 3))])
-  return np.array([r * r - np.dot(P @ x - c, P @ x - c) for (c, r) in OBS])
+  return np.array([r * r - np.linalg.norm(P @ x - c)**2 for (c, r) in OBS])
 
 def dgdx(x, u):
   P = np.hstack([np.eye(3), np.zeros((3, 3))])
@@ -109,23 +106,19 @@ def solve(x_ref, u_ref, T_ref, x_i, x_f, u_i, u_f, F, dFdx, dFdu):
   cost = 0.0
   constr = []
 
-  cost += U_W * cp.norm2(gamma)
   cost += T_W * cp.norm2(T)
-  for i in range(N):
-    cost += VIRTUAL_BUF * cp.norm1(eta[i])
-  for i in range(N + 1):
-    cost += 1.0 / (2.0 * X_STEP) * cp.norm2(x[i] - x_ref[i])
-    cost += 1.0 / (2.0 * U_STEP) * cp.norm2(u[i] - u_ref[i])
+  cost += C_W * cp.norm1(eta)
 
   for i in range(N):
     # linearize and discretize dynamics and obstacle constraints
     x_prop, Ak, Bk_0, Bk_1, Sk = integrate(x_ref[i], u_ref[i], u_ref[i + 1], T_ref[i], F, dFdx, dFdu)
     
     # dynamics constraints
-    constr += [x[i + 1] + eta[i] == x_prop + Ak @ (x[i] - x_ref[i]) + Bk_0 @ (u[i] - u_ref[i]) + Bk_1 @ (u[i + 1] - u_ref[i + 1]) + Sk * (T[i] - T_ref[i])]
+    constr += [x[i + 1] == x_prop + Ak @ (x[i] - x_ref[i]) + Bk_0 @ (u[i] - u_ref[i]) + Bk_1 @ (u[i + 1] - u_ref[i + 1]) + Sk * (T[i] - T_ref[i]) + eta[i]]
 
     # obstacle constraints
-    constr += [x[i + 1][N_X:] - x[i][N_X:] <= 1e-2]
+    constr += [x[i + 1][N_X:] == 0.0]
+    constr += [x[i][N_X:] == 0.0]
 
   # control constraints
   for i in range(N + 1):
@@ -175,21 +168,21 @@ def ctcs():
   def Z(z, u):
     x = z[:N_X]
     x_dot = f(x, u)
-    B_dot = np.sum(np.maximum(g(x, u), 0.0)**2, axis=0)
+    B_dot = 1e5 * np.sum(np.maximum(g(x, u), 0.0)**2, axis=0)
     return np.hstack([x_dot, B_dot])
   
   def dZdz(z, u):
     x = z[:N_X]
     A_tau = dfdx(x, u)
     g_xu = g(x, u)
-    G_tau = np.sum(np.maximum(2.0 * g_xu.reshape(-1, 1) * dgdx(x, u), 0.0), axis=0)
+    G_tau = 1e5 * np.sum(np.maximum(2.0 * g_xu.reshape(-1, 1) * dgdx(x, u), 0.0), axis=0)
     return np.hstack([np.vstack([A_tau, G_tau]), np.zeros((N_X + 1, 1))])
   
   def dZdu(z, u):
     x = z[:N_X]
     B_tau = dfdu(x, u)
     g_xu = g(x, u)
-    H_tau = np.sum(np.maximum(2.0 * g_xu.reshape(-1, 1) * dgdu(x, u), 0.0), axis=0)
+    H_tau = 1e5 * np.sum(np.maximum(2.0 * g_xu.reshape(-1, 1) * dgdu(x, u), 0.0), axis=0)
     return np.vstack([B_tau, H_tau])
 
   prev_cost = np.inf
