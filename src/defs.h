@@ -17,5 +17,8 @@ using std::to_string;
 using std::ofstream;
 using std::string;
 using std::vector;
+using std::pair;
+using Eigen::Vector3d;
+using Eigen::RowVector3d;
 
 #endif
