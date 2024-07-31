@@ -18,7 +18,7 @@ def plot(r, u, obs, r_prop=None):
   # plot trajectory
   r_x, r_y, r_z = r.swapaxes(0, 1)
   u_x, u_y, u_z = u.swapaxes(0, 1)
-  ax.plot(r_x, r_y, r_z)
+  # ax.plot(r_x, r_y, r_z)
 
   # plot controls
   for i in range(len(r)):
