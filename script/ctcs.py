@@ -3,18 +3,18 @@ import cvxpy as cp
 import numpy as np
 from scipy.integrate import solve_ivp
 
-T_WEIGHT = 1e2
-VIRTUAL_CONTROL = 1e4
-X_TRUST = 1e2
-U_TRUST = 1e2
+T_WEIGHT = 1e0
+VIRTUAL_CONTROL = 1e8
+X_TRUST = 1e-4
+U_TRUST = 1e-4
 T_STEP = 1e-1
-CONV_EPS = 1e-2
+CONV_EPS = 1e-3
 
 X_I = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 X_F = [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
 U_I = [0.0, 0.0, 9.81]
 U_F = [0.0, 0.0, 9.81]
-N = 5
+N = 10
 T_MIN = 2.0
 T_MAX = 4.0
 U_MIN = 1.0
@@ -107,6 +107,7 @@ def solve(x_ref, u_ref, T_ref, x_i, x_f, u_i, u_f, F, dFdx, dFdu):
   cost = 0.0
   constr = []
 
+  # cost function
   cost += T_WEIGHT * cp.norm2(T)
   cost += VIRTUAL_CONTROL * cp.norm1(eta)
   for i in range(N + 1):
