@@ -8,7 +8,7 @@ VIRTUAL_CONTROL = 1e8
 X_TRUST = 1e-4
 U_TRUST = 1e-4
 T_STEP = 1e-1
-CONV_EPS = 1e-3
+CONV_EPS = 1e-4
 
 X_I = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 X_F = [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
@@ -108,7 +108,7 @@ def solve(x_ref, u_ref, T_ref, x_i, x_f, u_i, u_f, F, dFdx, dFdu):
   constr = []
 
   # cost function
-  cost += T_WEIGHT * cp.norm2(T)
+  cost += T_WEIGHT * cp.norm1(T)
   cost += VIRTUAL_CONTROL * cp.norm1(eta)
   for i in range(N + 1):
     cost += X_TRUST * cp.norm2(x[i] - x_ref[i])

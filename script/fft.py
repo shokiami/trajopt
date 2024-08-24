@@ -91,7 +91,7 @@ def solve(x_ref, u_ref, T_ref):
   constr = []
 
   cost += U_W * cp.norm2(gamma)
-  cost += T_W * cp.norm2(T)
+  cost += T_W * cp.norm1(T)
   for i in range(N + 1):
     cost += VIRTUAL_BUF * cp.norm1(eta[i])
     cost += 1.0 / (2.0 * X_STEP) * cp.norm2(x[i] - x_ref[i])
