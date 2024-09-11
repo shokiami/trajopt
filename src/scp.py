@@ -1,10 +1,11 @@
 from viz import plot
 import cvxpy as cp
 import numpy as np
+import matplotlib.pyplot as plt
 
-U_W = 1e2
-VIRTUAL_BUF = 1e4
-STEP_SIZE = 1e2
+U_WEIGHT = 1e0
+VIRTUAL_BUF = 1e8
+R_TRUST = 1e-4
 CONV_EPS = 1e-2
 
 R_I = [0.0, 0.0, 0.0]
@@ -13,7 +14,7 @@ V_I = [0.0, 0.0, 0.0]
 V_F = [0.0, 0.0, 0.0]
 A_I = [0.0, 0.0, 0.0]
 A_F = [0.0, 0.0, 0.0]
-N = 30
+N = 10
 T_F = 4.0
 U_MIN = 1.0
 U_MAX = 20.0
@@ -22,7 +23,7 @@ MASS = 1.0
 
 OBS = [
   ((3.0, 2.0, 2.3), 2.0),
-  ((4.8, 7.0, 6.0), 3.0),
+  ((4.8, 7.0, 5.5), 3.0),
   ((9.0, 8.0, 10.0), 1.0),
 ]
 
@@ -37,10 +38,10 @@ def solve(r_ref):
   cost = 0.0
   constr = []
 
-  cost += U_W * cp.norm2(gamma)
+  cost += U_WEIGHT * cp.norm2(gamma)
+  cost += VIRTUAL_BUF * cp.norm1(eta)
   for i in range(N + 1):
-    cost += VIRTUAL_BUF * cp.norm1(eta[i])
-    cost += 1.0 / (2.0 * STEP_SIZE) * cp.norm2(r[i] - r_ref[i])
+    cost += R_TRUST * cp.norm2(r[i] - r_ref[i])
 
   # dynamics constraints
   g = [0.0, 0.0, 9.81]
@@ -64,7 +65,7 @@ def solve(r_ref):
   # final conditions
   constr += [r[N] == R_F, v[N] == V_F, a[N] == A_F]
 
-  # obstacle conditions
+  # obstacle constraints
   for i in range(N + 1):
     for j in range(len(OBS)):
       obs_c, obs_r = OBS[j]
@@ -72,11 +73,14 @@ def solve(r_ref):
       constr += [eta[i, j] >= 0.0]
 
   prob = cp.Problem(cp.Minimize(cost), constr)
-  result = prob.solve(solver=cp.ECOS)
+  result = prob.solve(solver=cp.CLARABEL)
   return result, r.value, u.value
 
 if __name__ == '__main__':
   r_ref = np.linspace(R_I, R_F, N + 1)
+
+  ax = plt.figure('trajopt').add_subplot(projection='3d')
+  ax.set_title('Optimal Trajectory')
 
   prev_cost = np.inf
   while True:
@@ -85,6 +89,9 @@ if __name__ == '__main__':
       break
     prev_cost = cost
     r_ref = r
-    print(cost)
-
-  plot(r, u, OBS)
+    
+    plot(ax, r, u, OBS)
+    plt.pause(0.01)
+    print(f'cost: {cost}')
+  
+  plt.show()

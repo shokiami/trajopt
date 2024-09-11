@@ -1,19 +1,21 @@
-from viz import plot
+from viz import single_shot, plot
 import cvxpy as cp
 import numpy as np
 from scipy.integrate import solve_ivp
+import matplotlib.pyplot as plt
 
-U_W = 1e2
-VIRTUAL_BUF = 1e4
-X_STEP = 1e2
-U_STEP = 1e2
-CONV_EPS = 1e-2
+U_WEIGHT = 1e0
+VIRTUAL_BUF = 1e8
+X_TRUST = 1e-4
+U_TRUST = 1e-4
+T_STEP = 1e-1
+CONV_EPS = 1e-3
 
 X_I = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 X_F = [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
 U_I = [0.0, 0.0, 9.81]
 U_F = [0.0, 0.0, 9.81]
-N = 30
+N = 10
 T_F = 4.0
 U_MIN = 1.0
 U_MAX = 20.0
@@ -22,7 +24,7 @@ MASS = 1.0
 
 OBS = [
   ((3.0, 2.0, 2.3), 2.0),
-  ((4.8, 7.0, 6.0), 3.0),
+  ((4.8, 7.0, 5.5), 3.0),
   ((9.0, 8.0, 10.0), 1.0),
 ]
 
@@ -82,11 +84,11 @@ def solve(x_ref, u_ref):
   cost = 0.0
   constr = []
 
-  cost += U_W * cp.norm2(gamma)
+  cost += U_WEIGHT * cp.norm2(gamma)
+  cost += VIRTUAL_BUF * cp.norm1(eta)
   for i in range(N + 1):
-    cost += VIRTUAL_BUF * cp.norm1(eta[i])
-    cost += 1.0 / (2.0 * X_STEP) * cp.norm2(x[i] - x_ref[i])
-    cost += 1.0 / (2.0 * U_STEP) * cp.norm2(u[i] - u_ref[i])
+    cost += X_TRUST * cp.norm2(x[i] - x_ref[i])
+    cost += U_TRUST * cp.norm2(u[i] - u_ref[i])
 
   # dynamics constraints
   delta_t = T_F / N
@@ -106,7 +108,7 @@ def solve(x_ref, u_ref):
   # final conditions
   constr += [x[N] == X_F, u[N] == U_F]
 
-  # obstacle conditions
+  # obstacle constraints
   for i in range(N + 1):
     for j in range(len(OBS)):
       obs_c, obs_r = OBS[j]
@@ -114,13 +116,16 @@ def solve(x_ref, u_ref):
       constr += [eta[i, j] >= 0.0]
 
   prob = cp.Problem(cp.Minimize(cost), constr)
-  result = prob.solve(solver=cp.ECOS)
+  result = prob.solve(solver=cp.CLARABEL)
 
   return result, x.value, u.value
 
 if __name__ == '__main__':
   x_ref = np.linspace(X_I, X_F, N + 1)
   u_ref = np.zeros((N + 1, 3))
+
+  ax = plt.figure('trajopt').add_subplot(projection='3d')
+  ax.set_title('Optimal Trajectory')
 
   prev_cost = np.inf
   while True:
@@ -130,8 +135,11 @@ if __name__ == '__main__':
     prev_cost = cost
     x_ref = x
     u_ref = u
-    print(cost)
 
-  pos = x[:, 0:3]
-  control = u
-  plot(pos, control, OBS)
+    r = x[:, :3]
+    r_prop = single_shot(f, X_I, u, np.full(N, T_F / N))
+    plot(ax, r, u, OBS, r_prop)
+    plt.pause(0.01)
+    print(f'cost: {cost}')
+  
+  plt.show()

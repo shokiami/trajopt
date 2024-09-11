@@ -1,8 +1,20 @@
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
 
 VEC_SCALAR = 0.1
+
+def single_shot(f, x_i, u, T):
+  T_cumsum = np.cumsum(T)
+
+  def x_dot(t, x):
+    i = np.searchsorted(T_cumsum, t)
+    tau = (t - (T_cumsum[i - 1] if i > 0 else 0.0)) / T[i]
+    u_foh = (1.0 - tau) * u[i] + tau * u[i + 1]
+    return f(x, u_foh)
+  
+  res = solve_ivp(x_dot, (0.0, T_cumsum[-1]), x_i, max_step=1e-2).y[:]
+  r_prop = res[:3].swapaxes(0, 1)
+  return r_prop
 
 def draw_sphere(ax, x0, y0, z0, r):
   u, v = np.mgrid[0:2 * np.pi:30j, 0:np.pi:20j]
@@ -12,11 +24,11 @@ def draw_sphere(ax, x0, y0, z0, r):
   ax.plot_surface(x, y, z, color='blue', alpha=0.5)
 
 def plot(ax, r, u, obs, r_prop=None):
-  ax.cla()
-
-  # plot trajectory
   r_x, r_y, r_z = r.swapaxes(0, 1)
   u_x, u_y, u_z = u.swapaxes(0, 1)
+
+  # clear plot
+  ax.cla()
 
   # plot controls
   for i in range(len(r)):
@@ -31,7 +43,7 @@ def plot(ax, r, u, obs, r_prop=None):
     (obs_x, obs_y, obs_z), obs_r = obs[i]
     draw_sphere(ax, obs_x, obs_y, obs_z, obs_r)
 
-  # plot propagated traj
+  # plot traj
   if r_prop is not None:
     r_prop_x, r_prop_y, r_prop_z = r_prop.swapaxes(0, 1)
     ax.plot(r_prop_x, r_prop_y, r_prop_z)

@@ -1,4 +1,4 @@
-from viz import plot
+from viz import single_shot, plot
 import cvxpy as cp
 import numpy as np
 from scipy.integrate import solve_ivp
@@ -9,7 +9,7 @@ VIRTUAL_CONTROL = 1e8
 X_TRUST = 1e-4
 U_TRUST = 1e-4
 T_STEP = 1e-1
-CONV_EPS = 1e-4
+CONV_EPS = 1e-3
 
 X_I = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 X_F = [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
@@ -148,20 +148,7 @@ def solve(x_ref, u_ref, T_ref, x_i, x_f, u_i, u_f, F, dFdx, dFdu):
 
   return result, x.value, u.value, T.value
 
-def single_shot(x_i, u, T):
-  T_cumsum = np.cumsum(T)
-
-  def x_dot(t, x):
-    i = np.searchsorted(T_cumsum, t)
-    tau = (t - (T_cumsum[i - 1] if i > 0 else 0.0)) / T[i]
-    u_foh = (1.0 - tau) * u[i] + tau * u[i + 1]
-    return f(x, u_foh)
-  
-  res = solve_ivp(x_dot, (0.0, T_cumsum[-1]), x_i, max_step=1e-2).y[:]
-  r_prop = res[:3].swapaxes(0, 1)
-  return r_prop
-
-def ctcs():
+if __name__ == '__main__':
   z_i = np.hstack([X_I, 0.0])
   z_f = np.hstack([X_F, 0.0])
   u_i = U_I
@@ -202,14 +189,11 @@ def ctcs():
     z_ref = z
     u_ref = u
     T_ref = T
-    print(f'cost: {cost}, time: {np.sum(T)}')
 
     r = z[:, :3]
-    r_prop = single_shot(X_I, u, T)
+    r_prop = single_shot(f, X_I, u, T)
     plot(ax, r, u, OBS, r_prop)
     plt.pause(0.01)
+    print(f'cost: {cost}, time: {np.sum(T)}')
   
   plt.show()
-
-if __name__ == '__main__':
-  ctcs()
