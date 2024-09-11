@@ -1,32 +1,21 @@
 # trajopt
 
-A lightweight autonomous drone flight trajectory optimizer in C++.
+A lightweight Python script for trajectory optimization.
 
 Dependencies:
-- [Epigraph](https://github.com/EmbersArc/Epigraph)
-- [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page)
+
+- [CVXPY](https://www.cvxpy.org/)
+- [SciPy](https://scipy.org/)
+- [NumPy](https://numpy.org/)
 - [Matplotlib](https://matplotlib.org/)
 
-Set up:
-```
-./setup.sh
-```
-
-Build:
-```
-make
-```
-
 Run:
-```
-./main
-```
 
-Visualize:
 ```
-python3 script/viz.py
+cd src
+python3 ctcs.py
 ```
 
 Example:
 
-![](trajopt.png)
+![](trajopt.jpg)

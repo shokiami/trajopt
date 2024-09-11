@@ -2,6 +2,7 @@ from viz import plot
 import cvxpy as cp
 import numpy as np
 from scipy.integrate import solve_ivp
+import matplotlib.pyplot as plt
 
 T_WEIGHT = 1e0
 VIRTUAL_CONTROL = 1e8
@@ -189,6 +190,9 @@ def ctcs():
     dBdu = 2.0 * np.sum(g_xu[mask].reshape(-1, 1) * dgdu(x, u)[mask], axis=0)
     return np.vstack([dfdu(x, u), dBdu])
 
+  ax = plt.figure('trajopt').add_subplot(projection='3d')
+  ax.set_title('Optimal Trajectory')
+
   prev_cost = np.inf
   while True:
     cost, z, u, T = solve(z_ref, u_ref, T_ref, z_i, z_f, u_i, u_f, Z, dZdz, dZdu)
@@ -198,14 +202,14 @@ def ctcs():
     z_ref = z
     u_ref = u
     T_ref = T
-    print(cost)
+    print(f'cost: {cost}, time: {np.sum(T)}')
 
-  r = z[:, :3]
-  r_prop = single_shot(X_I, u, T)
-  print(f'final time: {np.sum(T)}')
-
-  return r, u, r_prop
+    r = z[:, :3]
+    r_prop = single_shot(X_I, u, T)
+    plot(ax, r, u, OBS, r_prop)
+    plt.pause(0.01)
+  
+  plt.show()
 
 if __name__ == '__main__':
-  r, u, r_prop = ctcs()
-  plot(r, u, OBS, r_prop)
+  ctcs()
