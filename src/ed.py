@@ -8,7 +8,6 @@ U_WEIGHT = 1e0
 VIRTUAL_BUF = 1e8
 X_TRUST = 1e-4
 U_TRUST = 1e-4
-T_STEP = 1e-1
 CONV_EPS = 1e-3
 
 X_I = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

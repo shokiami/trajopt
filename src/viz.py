@@ -31,8 +31,7 @@ def plot(ax, r, u, obs, r_prop=None):
   ax.cla()
 
   # plot controls
-  for i in range(len(r)):
-    ax.quiver(r_x, r_y, r_z, VEC_SCALAR * u_x, VEC_SCALAR * u_y, VEC_SCALAR * u_z, color='red')
+  ax.quiver(r_x, r_y, r_z, VEC_SCALAR * u_x, VEC_SCALAR * u_y, VEC_SCALAR * u_z, color='red')
 
   # plot start and dest
   ax.plot(r_x[0], r_y[0], r_z[0], 'o', linestyle='', color='green', label='start')
