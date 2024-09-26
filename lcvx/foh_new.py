@@ -10,6 +10,8 @@ T_F = 4.0
 U_MIN = 4.0
 U_MAX = 6.0
 
+DU_MAX = 2.5
+
 A = np.vstack([np.hstack([np.zeros((3, 3)), np.eye(3)]), np.zeros((3, 6))])
 B = np.vstack([np.zeros((3, 3)), np.eye(3)])
 
@@ -64,6 +66,8 @@ def solve(u_min, u_max):
   for i in range(N + 1):
     constr += [cp.norm2(u[i]) <= sigma[i]]
     constr += [u_min <= sigma[i], sigma[i] <= u_max]
+  for i in range(N):
+    constr += [cp.norm2(u[i + 1] - u[i]) <= DU_MAX]
 
   # initial conditions
   constr += [x[0] == X_I]
@@ -79,14 +83,22 @@ def solve(u_min, u_max):
 
 if __name__ == '__main__':
 
-  cost, x, u = solve(U_MIN, U_MAX)
+  # cost, x, u = solve(U_MIN, U_MAX)
+  # max_theta = 0.0
+  # max_d = 0.0
+  # for i in range(len(u) - 1):
+  #   theta = np.arccos(np.dot(u[i], u[i + 1]) / (np.linalg.norm(u[i]) * np.linalg.norm(u[i + 1])))
+  #   d = np.linalg.norm(u[i + 1] - u[i])
+  #   if theta > max_theta:
+  #     max_theta = theta
+  #   if d > max_d:
+  #     max_d = d
+  # print(max_theta, max_d)
 
-  max_theta = 0.0
-  for i in range(len(u) - 1):
-    theta = np.arccos(np.dot(u[i], u[i + 1]) / (np.linalg.norm(u[i]) * np.linalg.norm(u[i + 1])))
-    if theta > max_theta:
-      max_theta = theta
-  u_min = U_MIN / np.cos(max_theta / 2)
+  theta = np.arccos(1.0 - DU_MAX**2 / (2 * U_MIN**2))
+  print(theta)
+  
+  u_min = U_MIN / np.cos(theta / 2)
 
   cost, x, u = solve(u_min, U_MAX)
   print(f'cost: {cost}')
