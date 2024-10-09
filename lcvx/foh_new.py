@@ -81,9 +81,9 @@ def solve(rho_min, rho_max, delta):
 
   return cost, x.value, u.value
 
-
 if __name__ == '__main__':
-  delta_hi = 10.0
+  cost, x, u = solve(RHO_MIN, RHO_MAX, np.inf)
+  delta_hi = np.max(np.linalg.norm(np.diff(u), axis=1))
   delta_lo = 0.0
   while delta_hi - delta_lo > CONV_EPS:
     delta = (delta_hi + delta_lo) / 2.0
