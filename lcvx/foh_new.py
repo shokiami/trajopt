@@ -7,10 +7,10 @@ N = 10
 X_I = [0.0, 0.0, 0.0, 0.0, 0.0, 10.0]
 X_F = [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
 T_F = 4.0
-U_MIN = 4.0
-U_MAX = 6.0
-
-DU_MAX = 2.5
+RHO_MIN = 4.0
+RHO_MAX = 6.0
+CONV_EPS = 1e-2
+VIOL_EPS = 1e-4
 
 A = np.vstack([np.hstack([np.zeros((3, 3)), np.eye(3)]), np.zeros((3, 6))])
 B = np.vstack([np.zeros((3, 3)), np.eye(3)])
@@ -47,7 +47,7 @@ def integrate(dt):
 
   return Ak, Bk_0, Bk_1
 
-def solve(u_min, u_max):
+def solve(rho_min, rho_max, delta):
   x = cp.Variable((N + 1, 6))
   u = cp.Variable((N + 1, 3))
   sigma = cp.Variable(N + 1)
@@ -65,9 +65,10 @@ def solve(u_min, u_max):
   # control constraints
   for i in range(N + 1):
     constr += [cp.norm2(u[i]) <= sigma[i]]
-    constr += [u_min <= sigma[i], sigma[i] <= u_max]
+    constr += [cp.norm2(u[i]) <= rho_max]
+    constr += [rho_min <= sigma[i]]
   for i in range(N):
-    constr += [cp.norm2(u[i + 1] - u[i]) <= DU_MAX]
+    constr += [cp.norm2(u[i + 1] - u[i]) <= delta]
 
   # initial conditions
   constr += [x[0] == X_I]
@@ -82,25 +83,14 @@ def solve(u_min, u_max):
 
 
 if __name__ == '__main__':
-
-  # cost, x, u = solve(U_MIN, U_MAX)
-  # max_theta = 0.0
-  # max_d = 0.0
-  # for i in range(len(u) - 1):
-  #   theta = np.arccos(np.dot(u[i], u[i + 1]) / (np.linalg.norm(u[i]) * np.linalg.norm(u[i + 1])))
-  #   d = np.linalg.norm(u[i + 1] - u[i])
-  #   if theta > max_theta:
-  #     max_theta = theta
-  #   if d > max_d:
-  #     max_d = d
-  # print(max_theta, max_d)
-
-  theta = np.arccos(1.0 - DU_MAX**2 / (2 * U_MIN**2))
-  print(theta)
-  
-  u_min = U_MIN / np.cos(theta / 2)
-
-  cost, x, u = solve(u_min, U_MAX)
-  print(f'cost: {cost}')
-  
-  plot(x, u, f, X_I, np.full(N, T_F / N), U_MIN, U_MAX, True)
+  delta_hi = 10.0
+  delta_lo = 0.0
+  while delta_hi - delta_lo > CONV_EPS:
+    delta = (delta_hi + delta_lo) / 2.0
+    rho_min = np.sqrt(0.25 * delta**2 + RHO_MIN**2)
+    cost, x, u = solve(rho_min, RHO_MAX, delta)
+    if cost != np.inf and np.all(np.linalg.norm(u, axis=1) > rho_min - VIOL_EPS):
+      delta_hi = delta
+    else:
+      delta_lo = delta
+  plot(x, u, f, X_I, np.full(N, T_F / N), RHO_MIN, RHO_MAX, True)

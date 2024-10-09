@@ -60,7 +60,8 @@ if __name__ == '__main__':
   # control constraints
   for i in range(N):
     constr += [cp.norm2(u[i]) <= gamma[i]]
-    constr += [U_MIN <= gamma[i], gamma[i] <= U_MAX]
+    constr += [cp.norm2(u[i]) <= U_MAX]
+    constr += [U_MIN <= gamma[i]]
 
   # initial conditions
   constr += [x[0] == X_I]

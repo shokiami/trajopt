@@ -63,7 +63,8 @@ if __name__ == '__main__':
   # control constraints
   for i in range(N + 1):
     constr += [cp.norm2(u[i]) <= sigma[i]]
-    constr += [U_MIN <= sigma[i], sigma[i] <= U_MAX]
+    constr += [cp.norm2(u[i]) <= U_MAX]
+    constr += [U_MIN <= sigma[i]]
 
   # initial conditions
   constr += [x[0] == X_I]

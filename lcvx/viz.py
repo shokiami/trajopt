@@ -71,6 +71,7 @@ def plot(x, u, f, x_i, T, u_min, u_max, foh = False):
   ax2.grid()
   ax2.set_xticks(range(len(x)))
   ax2.set_xlim(0, len(x) - 1)
+  print(f'u_min: {np.min(u_norm)}, u_max: {np.max(u_norm)}')
 
   ax3 = fig.add_subplot(133, projection='3d')
   draw_sphere(ax3, 0.0, 0.0, 0.0, u_min)
