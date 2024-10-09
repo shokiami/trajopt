@@ -81,7 +81,7 @@ def solve(rho_min, rho_max, delta):
 
   return cost, x.value, u.value
 
-if __name__ == '__main__':
+def fohlcvx():
   cost, x, u = solve(RHO_MIN, RHO_MAX, np.inf)
   delta_hi = np.max(np.linalg.norm(np.diff(u), axis=1))
   delta_lo = 0.0
@@ -93,4 +93,8 @@ if __name__ == '__main__':
       delta_hi = delta
     else:
       delta_lo = delta
+  return x, u
+
+if __name__ == '__main__':
+  x, u = fohlcvx()
   plot(x, u, f, X_I, np.full(N, T_F / N), RHO_MIN, RHO_MAX, True)
