@@ -9,8 +9,8 @@ X_F = [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
 T_F = 4.0
 RHO_MIN = 4.0
 RHO_MAX = 6.0
-CONV_EPS = 1e-2
-VIOL_EPS = 1e-4
+CONV_EPS = 1e-1
+VIOL_EPS = 1e-3
 
 A = np.vstack([np.hstack([np.zeros((3, 3)), np.eye(3)]), np.zeros((3, 6))])
 B = np.vstack([np.zeros((3, 3)), np.eye(3)])
