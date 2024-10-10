@@ -26,23 +26,23 @@ def single_shot(f, x_i, u, T, foh):
   return r_prop
 
 def plot(x, u, f, x_i, T, u_min, u_max, foh = False):
-  fig = plt.figure('trajopt', figsize=(12, 4))
   r_x, r_y, r_z = x[:, :3].swapaxes(0, 1)
   u_x, u_y, u_z = u.swapaxes(0, 1)
   r_prop_x, r_prop_y, r_prop_z = single_shot(f, x_i, u, T, foh)
 
   # plot traj
-  ax1 = fig.add_subplot(131, projection='3d')
-  ax1.set_title('Optimal Trajectory')
+  fig1 = plt.figure()
+  ax1 = fig1.add_subplot(projection='3d')
+  ax1.view_init(elev=0, azim=-45, roll=0)
 
   # plot controls
   if foh:
-    ax1.quiver(r_x, r_y, r_z, 0.1 * u_x, 0.1 * u_y, 0.1 * u_z, color='red')
+    ax1.quiver(r_x, r_y, r_z, 0.2 * u_x, 0.2 * u_y, 0.2 * u_z, color='red')
   else:
     ax1.quiver(r_x[:len(u)], r_y[:len(u)], r_z[:len(u)], 0.1 * u_x, 0.1 * u_y, 0.1 * u_z, color='red')
 
   # plot traj
-  ax1.plot(r_prop_x, r_prop_y, r_prop_z)
+  ax1.plot(r_prop_x, r_prop_y, r_prop_z, color='blue')
 
   # plot start and dest
   ax1.plot(r_x[0], r_y[0], r_z[0], 'o', color='green', label='start')
@@ -53,34 +53,37 @@ def plot(x, u, f, x_i, T, u_min, u_max, foh = False):
   ax1.set_zlim(-1.0, 11.0)
   ax1.set_aspect('equal')
   ax1.legend()
+  plt.show()
 
-  ax2 = fig.add_subplot(132)
-  ax2.set_title('Control Magnitude')
-  ax2.axhline(u_max, color='red', linestyle='--', alpha=0.5)
-  ax2.axhline(u_min, color='red', linestyle='--', alpha=0.5)
+  fig2 = plt.figure()
+  ax2 = fig2.add_subplot()
+  ax2.axhline(u_max, color='blue', linestyle='--', alpha=0.5)
+  ax2.axhline(u_min, color='blue', linestyle='--', alpha=0.5)
   if foh:
     step = 0.01
     k = np.arange(0, len(x) - 1 + step, step)
     u_interp = np.array([np.interp(k, range(len(x)), u[:, i]) for i in range(3)]).swapaxes(0, 1)
     u_norm = np.linalg.norm(u_interp, axis=1)
-    ax2.plot(k, u_norm)
+    ax2.plot(k, u_norm, color='red')
   else:
     k = range(len(x))
     u_norm = np.linalg.norm(u, axis=1)
-    ax2.step(k, np.append(u_norm, u_norm[-1]), where='post')
+    ax2.step(k, np.append(u_norm, u_norm[-1]), where='post', color='red')
   ax2.grid()
   ax2.set_xticks(range(len(x)))
   ax2.set_xlim(0, len(x) - 1)
-  print(f'u_min: {np.min(u_norm)}, u_max: {np.max(u_norm)}')
+  plt.show()
 
-  ax3 = fig.add_subplot(133, projection='3d')
+  fig3 = plt.figure()
+  ax3 = fig3.add_subplot(projection='3d')
+  ax3.view_init(elev=0, azim=-45, roll=0)
   draw_sphere(ax3, 0.0, 0.0, 0.0, u_min)
   draw_sphere(ax3, 0.0, 0.0, 0.0, u_max)
   if foh:
-    ax3.plot(u_x, u_y, u_z)
+    ax3.plot(u_x, u_y, u_z, color='red')
   else:
-    ax3.scatter(u_x, u_y, u_z, s=5)
+    ax3.scatter(u_x, u_y, u_z, color='red', s=5)
   ax3.set_aspect('equal')
-  
-  plt.tight_layout()
   plt.show()
+
+  print(f'u_min: {np.min(u_norm)}, u_max: {np.max(u_norm)}')

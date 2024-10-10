@@ -3,12 +3,12 @@ import cvxpy as cp
 import numpy as np
 from scipy.integrate import solve_ivp
 
-N = 10
+N = 8
 X_I = [0.0, 0.0, 0.0, 0.0, 0.0, 10.0]
 X_F = [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
 T_F = 4.0
-U_MIN = 4.0
-U_MAX = 6.0
+RHO_MIN = 4.0
+RHO_MAX = 6.0
 
 A = np.vstack([np.hstack([np.zeros((3, 3)), np.eye(3)]), np.zeros((3, 6))])
 B = np.vstack([np.zeros((3, 3)), np.eye(3)])
@@ -45,12 +45,12 @@ def integrate(dt):
 if __name__ == '__main__':
   x = cp.Variable((N + 1, 6))
   u = cp.Variable((N, 3))
-  gamma = cp.Variable(N)
+  sigma = cp.Variable(N)
 
   cost = 0.0
   constr = []
 
-  cost += cp.norm2(gamma)
+  cost += cp.norm2(sigma)
 
   # dynamics constraints
   Ak, Bk_0 = integrate(T_F / N)
@@ -59,9 +59,9 @@ if __name__ == '__main__':
 
   # control constraints
   for i in range(N):
-    constr += [cp.norm2(u[i]) <= gamma[i]]
-    constr += [cp.norm2(u[i]) <= U_MAX]
-    constr += [U_MIN <= gamma[i]]
+    constr += [cp.norm2(u[i]) <= sigma[i]]
+    constr += [cp.norm2(u[i]) <= RHO_MAX]
+    constr += [RHO_MIN <= sigma[i]]
 
   # initial conditions
   constr += [x[0] == X_I]
@@ -73,4 +73,4 @@ if __name__ == '__main__':
   cost = prob.solve(solver=cp.CLARABEL)
   print(f'cost: {cost}')
 
-  plot(x.value, u.value, f, X_I, np.full(N, T_F / N), U_MIN, U_MAX, False)
+  plot(x.value, u.value, f, X_I, np.full(N, T_F / N), RHO_MIN, RHO_MAX, False)
