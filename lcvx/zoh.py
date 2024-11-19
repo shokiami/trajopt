@@ -3,7 +3,7 @@ import cvxpy as cp
 import numpy as np
 from scipy.integrate import solve_ivp
 
-N = 8
+N = 10
 X_I = [0.0, 0.0, 0.0, 0.0, 0.0, 10.0]
 X_F = [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
 T_F = 4.0
@@ -60,7 +60,7 @@ if __name__ == '__main__':
   # control constraints
   for i in range(N):
     constr += [cp.norm2(u[i]) <= sigma[i]]
-    constr += [cp.norm2(u[i]) <= RHO_MAX]
+    constr += [sigma[i] <= RHO_MAX]
     constr += [RHO_MIN <= sigma[i]]
 
   # initial conditions
