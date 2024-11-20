@@ -3,7 +3,7 @@ import cvxpy as cp
 import numpy as np
 from scipy.integrate import solve_ivp
 
-N = 10
+N = 16
 X_I = [0.0, 0.0, 0.0, 0.0, 0.0, 10.0]
 X_F = [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
 T_F = 4.0

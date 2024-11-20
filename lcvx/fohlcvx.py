@@ -3,14 +3,16 @@ import cvxpy as cp
 import numpy as np
 from scipy.integrate import solve_ivp
 
-N = 10
+N = 16
 X_I = [0.0, 0.0, 0.0, 0.0, 0.0, 10.0]
 X_F = [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
 T_F = 4.0
 RHO_MIN = 4.0
 RHO_MAX = 6.0
 CONV_EPS = 1e-1
-VIOL_EPS = 1e-4
+VIOL_EPS = 1e-3
+N_X = 6
+N_U = 3
 
 A = np.vstack([np.hstack([np.zeros((3, 3)), np.eye(3)]), np.zeros((3, 6))])
 B = np.vstack([np.zeros((3, 3)), np.eye(3)])
@@ -23,9 +25,10 @@ def integrate(dt):
     return np.hstack([Ak.flatten(), Bk_0.flatten(), Bk_1.flatten()])
 
   def split(res):
-    Ak = res[0:36].reshape((6, 6))
-    Bk_0 = res[36:54].reshape((6, 3))
-    Bk_1 = res[54:72].reshape((6, 3))
+    res_split = np.split(res, np.cumsum([N_X*N_X, N_X*N_U, N_X*N_U])[:-1])
+    Ak = res_split[0].reshape((N_X, N_X))
+    Bk_0 = res_split[1].reshape((N_X, N_U))
+    Bk_1 = res_split[2].reshape((N_X, N_U))
 
     return Ak, Bk_0, Bk_1
 
@@ -38,18 +41,18 @@ def integrate(dt):
 
     return concat(Ak_dot, Bk_0_dot, Bk_1_dot)
 
-  Ak_i = np.eye(6)
-  Bk_0_i = np.zeros((6, 3))
-  Bk_1_i = np.zeros((6, 3))
+  Ak_i = np.eye(N_X)
+  Bk_0_i = np.zeros((N_X, N_U))
+  Bk_1_i = np.zeros((N_X, N_U))
   res_i = concat(Ak_i, Bk_0_i, Bk_1_i)
   res = solve_ivp(res_dot, (0.0, dt), res_i).y[:, -1]
   Ak, Bk_0, Bk_1 = split(res)
 
   return Ak, Bk_0, Bk_1
 
-def solve(rho, delta):
-  x = cp.Variable((N + 1, 6))
-  u = cp.Variable((N + 1, 3))
+def solve(rho):
+  x = cp.Variable((N + 1, N_X))
+  u = cp.Variable((N + 1, N_U))
   sigma = cp.Variable(N + 1)
 
   cost = 0.0
@@ -63,11 +66,11 @@ def solve(rho, delta):
     constr += [x[i + 1] == Ak @ x[i] + Bk_0 @ u[i] + Bk_1 @ u[i + 1]]
 
   # control constraints
-  for i in range(N):
-    constr += [cp.norm2(u[i + 1] - u[i])**2 <= delta**2]
   for i in range(N + 1):
     constr += [rho <= sigma[i], sigma[i] <= RHO_MAX]
     constr += [cp.norm2(u[i]) <= sigma[i]]
+  for i in range(N):
+    constr += [cp.norm2(u[i + 1] - u[i]) <= 2 * np.sqrt(rho**2 - RHO_MIN**2)]
 
   # initial conditions
   constr += [x[0] == X_I]
@@ -87,17 +90,17 @@ def fohlcvx():
   rho_high = RHO_MAX
   while rho_high - rho_low > CONV_EPS:
     rho = (rho_low + rho_high) / 2
-    delta = 2 * np.sqrt(rho**2 - RHO_MIN**2)
-    cost, x, u, eta_N = solve(rho, delta)
-    if cost != np.inf and (np.all(np.abs(eta_N) <= 1e-6) or np.all(np.linalg.norm(u, axis=1) > rho - VIOL_EPS)):
+    cost, x, u, eta_N = solve(rho)
+    # if cost != np.inf and (np.all(np.abs(eta_N) <= 1e-6) or np.all(np.linalg.norm(u, axis=1) > rho - VIOL_EPS)):
+    if cost != np.inf and (np.all(np.abs(eta_N) <= 1e-6) or np.sum(np.linalg.norm(u, axis=1) < rho - VIOL_EPS)) <= N_X + 1:
       rho_high = rho
     else:
       rho_low = rho
-  delta = 2 * np.sqrt(rho_high**2 - RHO_MIN**2)
-  cost, x, u, eta_N = solve(rho_high, delta)
+  cost, x, u, eta_N = solve(rho_high)
   print(rho_high)
   return x, u
 
 if __name__ == '__main__':
   x, u = fohlcvx()
+  # cost, x, u, eta_N = solve(4.06)
   plot(x, u, f, X_I, np.full(N, T_F / N), RHO_MIN, RHO_MAX, True)
