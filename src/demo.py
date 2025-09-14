@@ -1,6 +1,6 @@
 from viz import plot
 import numpy as np
-from foh import solve, f, N, X_I, X_F, T_F, RHO_MIN, RHO_MAX, N_X, VIOL_EPS
+from foh import solve, f, N, X_I, T_F, RHO_MIN, RHO_MAX, N_X, VIOL_EPS
 import matplotlib.pyplot as plt
 
 PLOT_RHOS = [4.05, 5.5]
