@@ -58,6 +58,7 @@ def solve(rho):
   cost = 0.0
   constr = []
 
+  cost += 100 * cp.norm2(x[N] - X_F)
   cost += cp.norm2(sigma)
 
   # dynamics constraints
@@ -75,9 +76,6 @@ def solve(rho):
   # initial conditions
   constr += [x[0] == X_I]
 
-  # final conditions
-  constr += [x[N] == X_F]
-
   prob = cp.Problem(cp.Minimize(cost), constr)
   cost = prob.solve(solver=cp.CLARABEL)
 
@@ -89,18 +87,25 @@ def fohlcvx():
   rho_low = RHO_MIN
   rho_high = RHO_MAX
   while rho_high - rho_low > CONV_EPS:
-    rho = (rho_low + rho_high) / 2
-    cost, x, u, eta_N = solve(rho)
-    # if cost != np.inf and (np.all(np.abs(eta_N) <= 1e-6) or np.all(np.linalg.norm(u, axis=1) > rho - VIOL_EPS)):
-    if cost != np.inf and (np.all(np.abs(eta_N) <= 1e-6) or np.sum(np.linalg.norm(u, axis=1) < rho - VIOL_EPS)) <= N_X + 1:
-      rho_high = rho
+    rho_1 = rho_low + (rho_high - rho_low) / 3
+    rho_2 = rho_high - (rho_high - rho_low) / 3
+    cost_1, x_1, u_1, eta_1_N = solve(rho_1)
+    cost_2, x_2, u_2, eta_2_N = solve(rho_2)
+    if not np.all(np.abs(eta_1_N) <= 1e-6) and np.sum(np.linalg.norm(u_1, axis=1) < RHO_MIN - VIOL_EPS) > N_X + 1:
+      rho_low = rho_1
+    elif np.all(np.abs(eta_2_N) <= 1e-6):
+      rho_high = rho_2
     else:
-      rho_low = rho
-  cost, x, u, eta_N = solve(rho_high)
-  print(rho_high)
-  return x, u
+      if cost_1 > cost_2:
+        rho_low = rho_1
+      else:
+        rho_high = rho_2
+  rho = (rho_low + rho_high) / 2
+  cost, x, u, eta_N = solve(rho)
+  return cost, x, u, rho
 
 if __name__ == '__main__':
-  x, u = fohlcvx()
-  # cost, x, u, eta_N = solve(4.06)
-  plot(x, u, f, X_I, np.full(N, T_F / N), RHO_MIN, RHO_MAX, True)
+  cost, x, u, rho = fohlcvx()
+  print(f'cost: {cost}')
+  print(f'rho: {rho}')
+  plot(x, u, f, X_I, np.full(N, T_F / N), RHO_MIN, RHO_MAX, True, r'$\tilde{\rho}_{\min} = $' + str(rho))

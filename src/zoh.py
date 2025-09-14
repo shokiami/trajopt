@@ -50,6 +50,7 @@ if __name__ == '__main__':
   cost = 0.0
   constr = []
 
+  cost += 100 * cp.norm2(x[N] - X_F)
   cost += cp.norm2(sigma)
 
   # dynamics constraints
@@ -65,9 +66,6 @@ if __name__ == '__main__':
 
   # initial conditions
   constr += [x[0] == X_I]
-
-  # final conditions
-  constr += [x[N] == X_F]
 
   prob = cp.Problem(cp.Minimize(cost), constr)
   cost = prob.solve(solver=cp.CLARABEL)
