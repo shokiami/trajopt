@@ -7,7 +7,6 @@ PLOT_RHOS = [4.05, 5.5]
 
 if __name__ == '__main__':
   rhos = np.round(np.arange(RHO_MIN, RHO_MAX + 0.01, 0.05), 2)
-  print(rhos)
   red = []
   blue = []
   orange = []
