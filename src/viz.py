@@ -25,7 +25,7 @@ def single_shot(f, x_i, u, T, foh):
   r_prop = res[:3]
   return r_prop
 
-def plot(x, u, f, x_i, T, u_min, u_max, foh = False, ax2_title = None):
+def plot(x, u, f, x_i, T, rho_min, rho_max, foh = False, ax2_title = None):
   r_x, r_y, r_z = x[:, :3].swapaxes(0, 1)
   u_x, u_y, u_z = u.swapaxes(0, 1)
   r_prop_x, r_prop_y, r_prop_z = single_shot(f, x_i, u, T, foh)
@@ -56,8 +56,8 @@ def plot(x, u, f, x_i, T, u_min, u_max, foh = False, ax2_title = None):
   ax2 = fig2.add_subplot()
   if ax2_title:
     ax2.set_title(ax2_title)
-  ax2.axhline(u_max, color='blue', linestyle='--', alpha=0.5)
-  ax2.axhline(u_min, color='blue', linestyle='--', alpha=0.5)
+  ax2.axhline(rho_max, color='blue', linestyle='--', alpha=0.5)
+  ax2.axhline(rho_min, color='blue', linestyle='--', alpha=0.5)
   if foh:
     step = 0.01
     k = np.arange(0, len(x) - 1 + step, step)
@@ -81,8 +81,8 @@ def plot(x, u, f, x_i, T, u_min, u_max, foh = False, ax2_title = None):
   ax3.view_init(elev=0, azim=-45, roll=0)
   # ax3.set_title('Optimal Controls')
 
-  draw_sphere(ax3, 0.0, 0.0, 0.0, u_min)
-  draw_sphere(ax3, 0.0, 0.0, 0.0, u_max)
+  draw_sphere(ax3, 0.0, 0.0, 0.0, rho_min)
+  draw_sphere(ax3, 0.0, 0.0, 0.0, rho_max)
   if foh:
     ax3.plot(u_x, u_y, u_z, color='red')
   else:

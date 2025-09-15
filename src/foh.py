@@ -91,9 +91,9 @@ def fohlcvx():
     rho_2 = rho_high - (rho_high - rho_low) / 3
     cost_1, x_1, u_1, eta_1_N = solve(rho_1)
     cost_2, x_2, u_2, eta_2_N = solve(rho_2)
-    if not np.all(np.abs(eta_1_N) <= 1e-6) and np.sum(np.linalg.norm(u_1, axis=1) < RHO_MIN - VIOL_EPS) > N_X + 1:
+    if not np.all(np.abs(eta_1_N) <= VIOL_EPS) and np.sum(np.linalg.norm(u_1, axis=1) < RHO_MIN - VIOL_EPS) > N_X + 1:
       rho_low = rho_1
-    elif np.all(np.abs(eta_2_N) <= 1e-6):
+    elif np.all(np.abs(eta_2_N) <= VIOL_EPS):
       rho_high = rho_2
     else:
       if cost_1 > cost_2:
@@ -108,4 +108,4 @@ if __name__ == '__main__':
   cost, x, u, rho = fohlcvx()
   print(f'cost: {cost}')
   print(f'rho: {rho}')
-  plot(x, u, f, X_I, np.full(N, T_F / N), RHO_MIN, RHO_MAX, True, r'$\tilde{\rho}_{\min} = $' + str(rho))
+  plot(x, u, f, X_I, np.full(N, T_F / N), RHO_MIN, RHO_MAX, True)
