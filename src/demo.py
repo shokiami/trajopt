@@ -40,7 +40,7 @@ if __name__ == '__main__':
   orange = [blue[-1]] + orange
   ax.plot(rhos[red], costs[red], linestyle='-', c='red', label=r"LCvx violated at $> n_x + 1$ vertices")
   ax.plot(rhos[blue], costs[blue], linestyle='-', c='blue', label=r"$\tilde{\rho}_{\min} \in (\rho_{\min}', \rho_{\min})$")
-  ax.plot(rhos[orange], costs[orange], linestyle='-', c='orange', label=r"$\eta_N = 0$")
+  ax.plot(rhos[orange], costs[orange], linestyle='-', c='orange', label=r"$\eta_N^* = 0$")
 
   ax.axvline(RHO_MIN, color='blue', linestyle='--', alpha=0.5, label=r"$\rho_{\min}, \rho_{\max}$")
   ax.axvline(RHO_MAX, color='blue', linestyle='--', alpha=0.5)
