@@ -105,6 +105,17 @@ def fohlcvx():
   return cost, x, u, rho
 
 if __name__ == '__main__':
+  # rho = 4.5
+  # cost, x, u, eta = solve(rho)
+  # max_delta = 0
+  # for i in range(N):
+  #   delta = np.linalg.norm(u[i + 1] - u[i])
+  #   if delta > max_delta:
+  #     max_delta = delta
+  # print(max_delta)
+  # print(2 * np.sqrt(rho**2 - RHO_MIN**2))
+  # exit()
+
   cost, x, u, rho = fohlcvx()
   print(f'cost: {cost}')
   print(f'rho: {rho}')
