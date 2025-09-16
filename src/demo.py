@@ -32,8 +32,8 @@ if __name__ == '__main__':
 
   fig = plt.figure()
   ax = fig.add_subplot()
-  ax.set_ylim(0, 100)
   ax.set_title(r'Cost vs $\tilde{\rho}_{\min}$')
+  ax.set_ylim(15, 45)
 
   costs = np.array(costs)
   red = red + [blue[0]]
@@ -44,13 +44,12 @@ if __name__ == '__main__':
 
   ax.axvline(RHO_MIN, color='blue', linestyle='--', alpha=0.5, label=r"$\rho_{\min}, \rho_{\max}$")
   ax.axvline(RHO_MAX, color='blue', linestyle='--', alpha=0.5)
-  ax.axvline(rhos[blue[0]], color='green', linestyle='--', alpha=0.5, label=r"$\rho_{\min}', \rho_{\max}'$")
+  ax.axvline(rhos[blue[0]], color='green', linestyle='--', alpha=0.5, label=r"$\rho_{\min}^-, \rho_{\min}^+$")
   ax.axvline(rhos[blue[-1]], color='green', linestyle='--', alpha=0.5)
   ax.plot(min_rho, min_cost, 'o', c='purple', label='opt')
 
   ax.set_xlabel(r'$\tilde{\rho}_{\min}$')
   ax.set_ylabel('Cost')
-  ax.set_yticks(range(0, 101, 10))
   ax.legend(loc='upper right')
   ax.grid()
   plt.show()
