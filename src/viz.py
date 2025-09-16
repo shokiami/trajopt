@@ -48,7 +48,7 @@ def plot(x, u, f, x_i, T, rho_min, rho_max, foh = False, ax2_title = None):
   ax1.set_ylim(-1.0, 11.0)
   ax1.set_zlim(-1.0, 11.0)
   ax1.set_aspect('equal')
-  ax1.legend()
+  ax1.legend(bbox_to_anchor=(0.92, 0.4))
   plt.show()
 
 
@@ -85,6 +85,7 @@ def plot(x, u, f, x_i, T, rho_min, rho_max, foh = False, ax2_title = None):
   draw_sphere(ax3, 0.0, 0.0, 0.0, rho_max)
   if foh:
     ax3.plot(u_x, u_y, u_z, color='red')
+    ax3.scatter(u_x, u_y, u_z, color='red', s=5)
   else:
     ax3.scatter(u_x, u_y, u_z, color='red', s=5)
   ax3.set_aspect('equal')
