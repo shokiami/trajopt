@@ -48,14 +48,14 @@ def plot(x, u, f, x_i, T, rho_min, rho_max, foh = False, ax2_title = None):
   ax1.set_ylim(-1.0, 11.0)
   ax1.set_zlim(-1.0, 11.0)
   ax1.set_aspect('equal')
-  ax1.legend(bbox_to_anchor=(0.92, 0.4))
+  ax1.legend(bbox_to_anchor=(0.92, 0.4), fontsize=12)
   plt.show()
 
 
   fig2 = plt.figure()
   ax2 = fig2.add_subplot()
   if ax2_title:
-    ax2.set_title(ax2_title)
+    ax2.set_title(ax2_title, fontsize=16)
   ax2.axhline(rho_max, color='blue', linestyle='--', alpha=0.5)
   ax2.axhline(rho_min, color='blue', linestyle='--', alpha=0.5)
   if foh:
@@ -69,8 +69,8 @@ def plot(x, u, f, x_i, T, rho_min, rho_max, foh = False, ax2_title = None):
     u_norm = np.linalg.norm(u, axis=1)
     ax2.step(k, np.append(u_norm, u_norm[-1]), where='post', color='red')
   ax2.grid()
-  ax2.set_xlabel(r'$t$')
-  ax2.set_ylabel(r'$\|u\|$')
+  ax2.set_xlabel(r'$t$', fontsize=12)
+  ax2.set_ylabel(r'$\|u\|$', fontsize=12)
   ax2.set_xticks(range(len(x)))
   ax2.set_xlim(0, len(x) - 1)
   plt.show()
